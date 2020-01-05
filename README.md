@@ -6,7 +6,7 @@ Contains the MySQL backend files for the Genealogy app
 
 The general purpose of the Genealogy app is to learn about- and further progress on MySQL, Sails, Node, JS, Angular, SVG (SnapSVG) and GIT.
 The Genealogy App will aid this purpose, but the app is not the purpose itself. The Genealogy app will consist of a MySQL backend, SailsJS as middleware and a Javascript / Angular (so also Typescript) frontend.
-The backend and middleware will run on privately hosted docker containers. The frontend will initially run as a simple WebApp for plain browsers, but is planned to be expanded into Mobile apps for Android as well as IOS and later on also Electron (so for use on full clients). 
+The backend and middleware will run on privately hosted docker containers. The frontend will initially run as a simple WebApp for plain browsers, but is planned to be expanded into Mobile apps for Android as well as IOS and later on also Electron (so for use on full clients). The frontend will also be ruon a privately hosted docker container, but this one will eventually be exposed to the Internet. 
 
 ## Specific purpose of this repo
 

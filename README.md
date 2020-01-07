@@ -14,4 +14,4 @@ The specific purpose of this repo is to contain all MySQL files required to buil
 
 ## Very much "Under Construction"!
 
-First steps for the middleware and the web client have also already been made, but are until now contained in a private GIT repo. These repo's will be made available public shortly. So if it seems that things are not complete by looking at this public repo, we'll, that's (partially) true at this moment :-). So please bear with me!
+First steps for the web client have also already been made, but are until now contained in a private GIT repo. This repo will be made available public shortly. So if it seems that things are not complete by looking at this public repo, we'll, that's (partially) true at this moment :-). So please bear with me!

@@ -1,10 +1,8 @@
-CREATE DATABASE  IF NOT EXISTS `humans` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
-USE `humans`;
 -- MySQL dump 10.13  Distrib 8.0.17, for Win64 (x86_64)
 --
--- Host: 127.0.0.1    Database: humans
+-- Host: 10.10.1.3    Database: humans
 -- ------------------------------------------------------
--- Server version	8.0.18
+-- Server version	8.0.12
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -54,7 +52,7 @@ CREATE TABLE `adresses` (
   `AdressMovedOut` date DEFAULT NULL COMMENT 'Date the person moved out of this adress',
   PRIMARY KEY (`AdressID`),
   KEY `FK_ADRESSES_PERSONS_PersonID` (`Person`),
-  CONSTRAINT `FK_ADRESSES_PERSONS_PersonID` FOREIGN KEY (`Person`) REFERENCES `persons` (`PersonID`)
+  CONSTRAINT `FK_ADRESSES_PERSONS_PersonID` FOREIGN KEY (`Person`) REFERENCES `persons` (`personid`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1 COMMENT='Table to contain all adresses of a person through time';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -94,6 +92,24 @@ CREATE TABLE `archive` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `documents`
+--
+
+DROP TABLE IF EXISTS `documents`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `documents` (
+  `DocumentId` int(11) NOT NULL,
+  `PersonId` int(11) NOT NULL,
+  `Type` varchar(45) NOT NULL,
+  `Store` varchar(45) DEFAULT NULL,
+  `IdOnStore` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`DocumentId`),
+  UNIQUE KEY `DocumentId_UNIQUE` (`DocumentId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Metadata for documents stored on disc and connected to persons via this metadata';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -149,7 +165,7 @@ CREATE TABLE `relationnames` (
   PRIMARY KEY (`RelationnameID`),
   UNIQUE KEY `RelationnameName_UNIQUE` (`RelationnameName`),
   KEY `FK_RELATIONNAMES_RELATIONTYPES_RelationtypeID` (`Relationtype`),
-  CONSTRAINT `FK_RELATIONNAMES_RELATIONTYPES_RelationtypeID` FOREIGN KEY (`Relationtype`) REFERENCES `relationtypes` (`RelationtypeID`)
+  CONSTRAINT `FK_RELATIONNAMES_RELATIONTYPES_RelationtypeID` FOREIGN KEY (`Relationtype`) REFERENCES `relationtypes` (`relationtypeid`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1 COMMENT='Table to contain the relation names which fit within relation types';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -169,8 +185,8 @@ CREATE TABLE `relations` (
   KEY `FK_RELATIONS_PERSONS_PersonID` (`RelationPerson`),
   KEY `FK_RELATIONS_RELATIONNAMES_RelationnameID` (`RelationName`),
   KEY `FK_RELATIONS_PERSONS_copy_PersonID` (`RelationWithPerson`),
-  CONSTRAINT `FK_RELATIONS_PERSONS_PersonID` FOREIGN KEY (`RelationPerson`) REFERENCES `persons` (`PersonID`),
-  CONSTRAINT `FK_RELATIONS_RELATIONNAMES_RelationnameID` FOREIGN KEY (`RelationName`) REFERENCES `relationnames` (`RelationnameID`)
+  CONSTRAINT `FK_RELATIONS_PERSONS_PersonID` FOREIGN KEY (`RelationPerson`) REFERENCES `persons` (`personid`),
+  CONSTRAINT `FK_RELATIONS_RELATIONNAMES_RelationnameID` FOREIGN KEY (`RelationName`) REFERENCES `relationnames` (`relationnameid`)
 ) ENGINE=InnoDB AUTO_INCREMENT=81 DEFAULT CHARSET=latin1 COMMENT='Table to express relations between natural persons';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -217,7 +233,7 @@ CREATE TABLE `testlog` (
   `TestlogID` int(11) NOT NULL AUTO_INCREMENT,
   `TestLogDateTime` datetime NOT NULL,
   PRIMARY KEY (`TestlogID`)
-) ENGINE=MyISAM AUTO_INCREMENT=26786 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=27026 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -233,7 +249,7 @@ CREATE TABLE `transnos` (
   `TransNoDateTime` datetime NOT NULL,
   PRIMARY KEY (`TransNoID`),
   UNIQUE KEY `idtransnos_UNIQUE` (`TransNoID`)
-) ENGINE=MyISAM AUTO_INCREMENT=9451 DEFAULT CHARSET=latin1 COMMENT='Table to register transaction numbers and the systems these are used by and provide seed for next transactionnumber';
+) ENGINE=MyISAM AUTO_INCREMENT=9563 DEFAULT CHARSET=latin1 COMMENT='Table to register transaction numbers and the systems these are used by and provide seed for next transactionnumber';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1660,25 +1676,27 @@ BEGIN
 	BEGIN
 		ROLLBACK;
 		SET CompletedOk = 2;
-		INSERT INTO humans.testLog 
+		INSERT INTO humans.testlog 
 			SET TestLog = CONCAT("Transaction-", IFNULL(NewTransNo, "null"), ". ", "Error occured in SPROC: GetAllChildrenWithPartnerFromOneParent(). Rollback executed. CompletedOk= ", CompletedOk),
 				TestLogDateTime = NOW();
-		SELECT CompletedOk;
+		-- SELECT CompletedOk;
 	END;
 
 main_proc:
 
 BEGIN
-
+               
 	SET CompletedOk = 0;
-
-
 
     SET TransResult = 0;
 
 
 
     SET NewTransNo = GetTranNo("GetAllChildrenFromOneParentWithPartner");
+    
+    	INSERT INTO humans.testlog 
+			SET TestLog = CONCAT("Transaction-", IFNULL(NewTransNo, "null"), ". ", "Start SPROC GetAllChildrenWithPartnerFromOneParent() with Partent is: ", IFNULL(TheParent, 'null')),
+				TestLogDateTime = NOW();
 
     
   SELECT DISTINCT
@@ -1739,13 +1757,11 @@ BEGIN
 
     SET RecCount = FOUND_ROWS();
 
-    SELECT CompletedOk, RecCount AS Kinderengevonden;
+    -- SELECT CompletedOk, RecCount AS Kinderengevonden;
  
-    INSERT INTO humans.testlog 
-
-	SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. TransResult= ', TransResult, '. Einde SPROC: GetAllChildrenWithPartnetFromOneParent() voor persoon met ID= ', PersonIdIn, '. CompletedOk= ', CompletedOk, '. Kinderen gevonden=', RecCount),
-
-		TestLogDateTime = NOW();
+	INSERT INTO humans.testlog 
+			SET TestLog = CONCAT("Transaction-", IFNULL(NewTransNo, "null"), ". ", "End SPROC GetAllChildrenWithPartnerFromOneParent() with Parent is: ", IFNULL(TheParent, 'null')),
+				TestLogDateTime = NOW();
 
  END;
 
@@ -4655,4 +4671,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-01-27 20:49:49
+-- Dump completed on 2020-01-28 22:49:21

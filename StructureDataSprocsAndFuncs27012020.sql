@@ -1,10 +1,8 @@
-CREATE DATABASE  IF NOT EXISTS `humans` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
-USE `humans`;
 -- MySQL dump 10.13  Distrib 8.0.17, for Win64 (x86_64)
 --
--- Host: 127.0.0.1    Database: humans
+-- Host: 10.10.1.3    Database: humans
 -- ------------------------------------------------------
--- Server version	8.0.18
+-- Server version	8.0.12
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -63,7 +61,7 @@ CREATE TABLE `adresses` (
   `AdressMovedOut` date DEFAULT NULL COMMENT 'Date the person moved out of this adress',
   PRIMARY KEY (`AdressID`),
   KEY `FK_ADRESSES_PERSONS_PersonID` (`Person`),
-  CONSTRAINT `FK_ADRESSES_PERSONS_PersonID` FOREIGN KEY (`Person`) REFERENCES `persons` (`PersonID`)
+  CONSTRAINT `FK_ADRESSES_PERSONS_PersonID` FOREIGN KEY (`Person`) REFERENCES `persons` (`personid`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1 COMMENT='Table to contain all adresses of a person through time';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -121,6 +119,33 @@ CREATE TABLE `archive` (
 LOCK TABLES `archive` WRITE;
 /*!40000 ALTER TABLE `archive` DISABLE KEYS */;
 /*!40000 ALTER TABLE `archive` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `documents`
+--
+
+DROP TABLE IF EXISTS `documents`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `documents` (
+  `DocumentId` int(11) NOT NULL,
+  `PersonId` int(11) NOT NULL,
+  `Type` varchar(45) NOT NULL,
+  `Store` varchar(45) DEFAULT NULL,
+  `IdOnStore` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`DocumentId`),
+  UNIQUE KEY `DocumentId_UNIQUE` (`DocumentId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Metadata for documents stored on disc and connected to persons via this metadata';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `documents`
+--
+
+LOCK TABLES `documents` WRITE;
+/*!40000 ALTER TABLE `documents` DISABLE KEYS */;
+/*!40000 ALTER TABLE `documents` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -195,7 +220,7 @@ CREATE TABLE `relationnames` (
   PRIMARY KEY (`RelationnameID`),
   UNIQUE KEY `RelationnameName_UNIQUE` (`RelationnameName`),
   KEY `FK_RELATIONNAMES_RELATIONTYPES_RelationtypeID` (`Relationtype`),
-  CONSTRAINT `FK_RELATIONNAMES_RELATIONTYPES_RelationtypeID` FOREIGN KEY (`Relationtype`) REFERENCES `relationtypes` (`RelationtypeID`)
+  CONSTRAINT `FK_RELATIONNAMES_RELATIONTYPES_RelationtypeID` FOREIGN KEY (`Relationtype`) REFERENCES `relationtypes` (`relationtypeid`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1 COMMENT='Table to contain the relation names which fit within relation types';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -225,8 +250,8 @@ CREATE TABLE `relations` (
   KEY `FK_RELATIONS_PERSONS_PersonID` (`RelationPerson`),
   KEY `FK_RELATIONS_RELATIONNAMES_RelationnameID` (`RelationName`),
   KEY `FK_RELATIONS_PERSONS_copy_PersonID` (`RelationWithPerson`),
-  CONSTRAINT `FK_RELATIONS_PERSONS_PersonID` FOREIGN KEY (`RelationPerson`) REFERENCES `persons` (`PersonID`),
-  CONSTRAINT `FK_RELATIONS_RELATIONNAMES_RelationnameID` FOREIGN KEY (`RelationName`) REFERENCES `relationnames` (`RelationnameID`)
+  CONSTRAINT `FK_RELATIONS_PERSONS_PersonID` FOREIGN KEY (`RelationPerson`) REFERENCES `persons` (`personid`),
+  CONSTRAINT `FK_RELATIONS_RELATIONNAMES_RelationnameID` FOREIGN KEY (`RelationName`) REFERENCES `relationnames` (`relationnameid`)
 ) ENGINE=InnoDB AUTO_INCREMENT=81 DEFAULT CHARSET=latin1 COMMENT='Table to express relations between natural persons';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -302,7 +327,7 @@ CREATE TABLE `testlog` (
   `TestlogID` int(11) NOT NULL AUTO_INCREMENT,
   `TestLogDateTime` datetime NOT NULL,
   PRIMARY KEY (`TestlogID`)
-) ENGINE=MyISAM AUTO_INCREMENT=26786 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=27026 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -311,6 +336,7 @@ CREATE TABLE `testlog` (
 
 LOCK TABLES `testlog` WRITE;
 /*!40000 ALTER TABLE `testlog` DISABLE KEYS */;
+INSERT INTO `testlog` VALUES ('Transaction-9562. End SPROC GetAllChildrenWithPartnerFromOneParent() with Parent is: 22',27025,'2020-01-28 21:06:59'),('Transaction-9562. Start SPROC GetAllChildrenWithPartnerFromOneParent() with Partent is: 22',27024,'2020-01-28 21:06:59'),('TransAction-9561. TransResult= 0. End SPROC: GetPlainListOfPersons(). Got all persons who s name is like: ex%',27023,'2020-01-28 21:06:53'),('TransAction-9561. TransResult= 0. Start SPROC: GetPlainListOfPersons(). Get all persons who s name is like:ex%',27022,'2020-01-28 21:06:53'),('Transaction-9560. End SPROC GetAllChildrenWithPartnerFromOneParent() with Parent is: 22',27021,'2020-01-28 21:06:33'),('Transaction-9560. Start SPROC GetAllChildrenWithPartnerFromOneParent() with Partent is: 22',27020,'2020-01-28 21:06:33'),('Transaction-9559. End SPROC GetAllChildrenWithPartnerFromOneParent() with Parent is: 22',27019,'2020-01-28 21:06:24'),('Transaction-9559. Start SPROC GetAllChildrenWithPartnerFromOneParent() with Partent is: 22',27018,'2020-01-28 21:06:24'),('Transaction-9558. End SPROC GetAllChildrenWithPartnerFromOneParent() with Parent is: 22',27017,'2020-01-28 21:04:30'),('Transaction-9558. Start SPROC GetAllChildrenWithPartnerFromOneParent() with Partent is: 22',27016,'2020-01-28 21:04:30'),('TransAction-9557. TransResult= 0. End SPROC: GetPlainListOfPersons(). Got all persons who s name is like: Exl%',27015,'2020-01-28 21:04:24'),('TransAction-9557. TransResult= 0. Start SPROC: GetPlainListOfPersons(). Get all persons who s name is like:Exl%',27014,'2020-01-28 21:04:24'),('TransAction-9556. TransResult= 0. End SPROC: GetPlainListOfPersons(). Got all persons who s name is like: FRans%',27013,'2020-01-28 21:00:42'),('TransAction-9556. TransResult= 0. Start SPROC: GetPlainListOfPersons(). Get all persons who s name is like:FRans%',27012,'2020-01-28 21:00:42'),('Transaction-9555. End SPROC GetAllChildrenWithPartnerFromOneParent() with Parent is: 22',27011,'2020-01-28 21:00:06'),('Transaction-9555. Start SPROC GetAllChildrenWithPartnerFromOneParent() with Partent is: 22',27010,'2020-01-28 21:00:06'),('TransAction-9554. TransResult= 0. End SPROC: GetPlainListOfPersons(). Got all persons who s name is like: ex%',27009,'2020-01-28 21:00:05'),('TransAction-9554. TransResult= 0. Start SPROC: GetPlainListOfPersons(). Get all persons who s name is like:ex%',27008,'2020-01-28 21:00:05'),('TransAction-9553. TransResult= 0. End SPROC: GetPlainListOfPersons(). Got all persons who s name is like: e%',27007,'2020-01-28 21:00:04'),('TransAction-9553. TransResult= 0. Start SPROC: GetPlainListOfPersons(). Get all persons who s name is like:e%',27006,'2020-01-28 21:00:04'),('Transaction-9552. End SPROC GetAllChildrenWithPartnerFromOneParent() with Parent is: 22',27005,'2020-01-28 20:54:57'),('Transaction-9552. Start SPROC GetAllChildrenWithPartnerFromOneParent() with Partent is: 22',27004,'2020-01-28 20:54:57'),('TransAction-9551. TransResult= 0. End SPROC: GetPlainListOfPersons(). Got all persons who s name is like: ex%',27003,'2020-01-28 20:54:56'),('TransAction-9551. TransResult= 0. Start SPROC: GetPlainListOfPersons(). Get all persons who s name is like:ex%',27002,'2020-01-28 20:54:56'),('Transaction-9550. End SPROC GetAllChildrenWithPartnerFromOneParent() with Parent is: 22',27001,'2020-01-28 20:51:02'),('Transaction-9550. Start SPROC GetAllChildrenWithPartnerFromOneParent() with Partent is: 22',27000,'2020-01-28 20:51:02'),('TransAction-9549. TransResult= 0. End SPROC: GetPlainListOfPersons(). Got all persons who s name is like: ex%',26999,'2020-01-28 20:51:01'),('TransAction-9549. TransResult= 0. Start SPROC: GetPlainListOfPersons(). Get all persons who s name is like:ex%',26998,'2020-01-28 20:51:01'),('Transaction-9548. End SPROC GetAllChildrenWithPartnerFromOneParent() with Parent is: 22',26997,'2020-01-28 20:37:43'),('Transaction-9548. Start SPROC GetAllChildrenWithPartnerFromOneParent() with Partent is: 22',26996,'2020-01-28 20:37:43'),('TransAction-9547. TransResult= 0. End SPROC: GetPlainListOfPersons(). Got all persons who s name is like: ex%',26995,'2020-01-28 20:37:42'),('TransAction-9547. TransResult= 0. Start SPROC: GetPlainListOfPersons(). Get all persons who s name is like:ex%',26994,'2020-01-28 20:37:42'),('Transaction-9546. End SPROC GetAllChildrenWithPartnerFromOneParent() with Parent is: 22',26993,'2020-01-28 20:37:02'),('Transaction-9546. Start SPROC GetAllChildrenWithPartnerFromOneParent() with Partent is: 22',26992,'2020-01-28 20:37:02'),('TransAction-9545. TransResult= 0. End SPROC: GetPlainListOfPersons(). Got all persons who s name is like: ex%',26991,'2020-01-28 20:37:00'),('TransAction-9545. TransResult= 0. Start SPROC: GetPlainListOfPersons(). Get all persons who s name is like:ex%',26990,'2020-01-28 20:37:00'),('Transaction-9544. End SPROC GetAllChildrenWithPartnerFromOneParent() with Parent is: 22',26989,'2020-01-28 20:34:36'),('Transaction-9544. Start SPROC GetAllChildrenWithPartnerFromOneParent() with Partent is: 22',26988,'2020-01-28 20:34:36'),('TransAction-9543. TransResult= 0. End SPROC: GetPlainListOfPersons(). Got all persons who s name is like: e%',26987,'2020-01-28 20:34:34'),('TransAction-9543. TransResult= 0. Start SPROC: GetPlainListOfPersons(). Get all persons who s name is like:e%',26986,'2020-01-28 20:34:34'),('Transaction-9542. End SPROC GetAllChildrenWithPartnerFromOneParent() with Parent is: 22',26985,'2020-01-28 20:32:15'),('Transaction-9542. Start SPROC GetAllChildrenWithPartnerFromOneParent() with Partent is: 22',26984,'2020-01-28 20:32:15'),('TransAction-9541. TransResult= 0. End SPROC: GetPlainListOfPersons(). Got all persons who s name is like: ex%',26983,'2020-01-28 20:32:14'),('TransAction-9541. TransResult= 0. Start SPROC: GetPlainListOfPersons(). Get all persons who s name is like:ex%',26982,'2020-01-28 20:32:14'),('Transaction-9540. End SPROC GetAllChildrenWithPartnerFromOneParent() with Parent is: 22',26981,'2020-01-28 20:31:19'),('Transaction-9540. Start SPROC GetAllChildrenWithPartnerFromOneParent() with Partent is: 22',26980,'2020-01-28 20:31:19'),('TransAction-9539. TransResult= 0. End SPROC: GetPlainListOfPersons(). Got all persons who s name is like: ex%',26979,'2020-01-28 20:31:17'),('TransAction-9539. TransResult= 0. Start SPROC: GetPlainListOfPersons(). Get all persons who s name is like:ex%',26978,'2020-01-28 20:31:17'),('Transaction-9538. End SPROC GetAllChildrenWithPartnerFromOneParent() with Parent is: 22',26977,'2020-01-28 20:21:18'),('Transaction-9538. Start SPROC GetAllChildrenWithPartnerFromOneParent() with Partent is: 22',26976,'2020-01-28 20:21:18'),('TransAction-9537. TransResult= 0. End SPROC: GetPlainListOfPersons(). Got all persons who s name is like: ex%',26975,'2020-01-28 20:21:17'),('TransAction-9537. TransResult= 0. Start SPROC: GetPlainListOfPersons(). Get all persons who s name is like:ex%',26974,'2020-01-28 20:21:17'),('Transaction-9536. End SPROC GetAllChildrenWithPartnerFromOneParent() with Parent is: 22',26973,'2020-01-28 20:19:05'),('Transaction-9536. Start SPROC GetAllChildrenWithPartnerFromOneParent() with Partent is: 22',26972,'2020-01-28 20:19:05'),('TransAction-9535. TransResult= 0. End SPROC: GetPlainListOfPersons(). Got all persons who s name is like: ex%',26971,'2020-01-28 20:19:04'),('TransAction-9535. TransResult= 0. Start SPROC: GetPlainListOfPersons(). Get all persons who s name is like:ex%',26970,'2020-01-28 20:19:04'),('Transaction-9534. End SPROC GetAllChildrenWithPartnerFromOneParent() with Parent is: 22',26969,'2020-01-28 20:16:55'),('Transaction-9534. Start SPROC GetAllChildrenWithPartnerFromOneParent() with Partent is: 22',26968,'2020-01-28 20:16:55'),('Transaction-9533. End SPROC GetAllChildrenWithPartnerFromOneParent() with Parent is: 22',26967,'2020-01-28 20:15:14'),('Transaction-9533. Start SPROC GetAllChildrenWithPartnerFromOneParent() with Partent is: 22',26966,'2020-01-28 20:15:14'),('TransAction-9532. TransResult= 0. End SPROC: GetPlainListOfPersons(). Got all persons who s name is like: ex%',26965,'2020-01-28 20:15:12'),('TransAction-9532. TransResult= 0. Start SPROC: GetPlainListOfPersons(). Get all persons who s name is like:ex%',26964,'2020-01-28 20:15:12'),('Transaction-9531. End SPROC GetAllChildrenWithPartnerFromOneParent() with Parent is: 22',26963,'2020-01-28 20:14:35'),('Transaction-9531. Start SPROC GetAllChildrenWithPartnerFromOneParent() with Partent is: 22',26962,'2020-01-28 20:14:35'),('TransAction-9530. TransResult= 0. End SPROC: GetPlainListOfPersons(). Got all persons who s name is like: e%',26961,'2020-01-28 20:14:33'),('TransAction-9530. TransResult= 0. Start SPROC: GetPlainListOfPersons(). Get all persons who s name is like:e%',26960,'2020-01-28 20:14:33'),('Transaction-9529. Start SPROC GetAllChildrenWithPartnerFromOneParent() with Partent is: 22',26958,'2020-01-28 20:12:08'),('Transaction-9529. End SPROC GetAllChildrenWithPartnerFromOneParent() with Parent is: 22',26959,'2020-01-28 20:12:08'),('TransAction-9528. TransResult= 0. End SPROC: GetPlainListOfPersons(). Got all persons who s name is like: e%',26957,'2020-01-28 20:12:06'),('TransAction-9528. TransResult= 0. Start SPROC: GetPlainListOfPersons(). Get all persons who s name is like:e%',26956,'2020-01-28 20:12:06'),('TransAction-9527. TransResult= 0. End SPROC: GetPlainListOfPersons(). Got all persons who s name is like: ex%',26955,'2020-01-28 20:08:50'),('TransAction-9527. TransResult= 0. Start SPROC: GetPlainListOfPersons(). Get all persons who s name is like:ex%',26954,'2020-01-28 20:08:50'),('TransAction-9526. TransResult= 0. End SPROC: GetPlainListOfPersons(). Got all persons who s name is like: e%',26953,'2020-01-28 20:08:50'),('TransAction-9526. TransResult= 0. Start SPROC: GetPlainListOfPersons(). Get all persons who s name is like:e%',26952,'2020-01-28 20:08:50'),('TransAction-9525. TransResult= 0. End SPROC: GetPlainListOfPersons(). Got all persons who s name is like: ex%',26951,'2020-01-28 20:04:03'),('TransAction-9525. TransResult= 0. Start SPROC: GetPlainListOfPersons(). Get all persons who s name is like:ex%',26950,'2020-01-28 20:04:03'),('TransAction-9524. TransResult= 0. End SPROC: GetPlainListOfPersons(). Got all persons who s name is like: Ex%',26949,'2020-01-28 19:53:19'),('TransAction-9524. TransResult= 0. Start SPROC: GetPlainListOfPersons(). Get all persons who s name is like:Ex%',26948,'2020-01-28 19:53:19'),('Transaction-9523. End SPROC GetAllChildrenWithPartnerFromOneParent() with Parent is: 24',26947,'2020-01-28 19:50:56'),('Transaction-9523. Start SPROC GetAllChildrenWithPartnerFromOneParent() with Partent is: 24',26946,'2020-01-28 19:50:56'),('Transaction-9522. End SPROC GetAllChildrenWithPartnerFromOneParent() with Parent is: 100',26945,'2020-01-28 19:47:29'),('Transaction-9522. Start SPROC GetAllChildrenWithPartnerFromOneParent() with Partent is: 100',26944,'2020-01-28 19:47:29'),('Transaction-9521. End SPROC GetAllChildrenWithPartnerFromOneParent() with Parent is: 24',26943,'2020-01-28 19:47:18'),('Transaction-9521. Start SPROC GetAllChildrenWithPartnerFromOneParent() with Partent is: 24',26942,'2020-01-28 19:47:18'),('Transaction-9520. End SPROC GetAllChildrenWithPartnerFromOneParent() with Parent is: 24',26941,'2020-01-28 19:46:15'),('Transaction-9520. Start SPROC GetAllChildrenWithPartnerFromOneParent() with Partent is: 24',26940,'2020-01-28 19:46:15'),('Transaction-9519. End SPROC GetAllChildrenWithPartnerFromOneParent() with Parent is: 24',26939,'2020-01-28 19:44:51'),('Transaction-9517. Start SPROC GetAllChildrenWithPartnerFromOneParent() with Partent is: 24',26934,'2020-01-28 19:41:44'),('Transaction-9518. Start SPROC GetAllChildrenWithPartnerFromOneParent() with Partent is: 24',26936,'2020-01-28 19:42:29'),('Transaction-9517. End SPROC GetAllChildrenWithPartnerFromOneParent() with Parent is: 24',26935,'2020-01-28 19:41:45'),('Transaction-9518. End SPROC GetAllChildrenWithPartnerFromOneParent() with Parent is: 24',26937,'2020-01-28 19:42:29'),('Transaction-9519. Start SPROC GetAllChildrenWithPartnerFromOneParent() with Partent is: 24',26938,'2020-01-28 19:44:51');
 /*!40000 ALTER TABLE `testlog` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -327,7 +353,7 @@ CREATE TABLE `transnos` (
   `TransNoDateTime` datetime NOT NULL,
   PRIMARY KEY (`TransNoID`),
   UNIQUE KEY `idtransnos_UNIQUE` (`TransNoID`)
-) ENGINE=MyISAM AUTO_INCREMENT=9451 DEFAULT CHARSET=latin1 COMMENT='Table to register transaction numbers and the systems these are used by and provide seed for next transactionnumber';
+) ENGINE=MyISAM AUTO_INCREMENT=9563 DEFAULT CHARSET=latin1 COMMENT='Table to register transaction numbers and the systems these are used by and provide seed for next transactionnumber';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -336,6 +362,7 @@ CREATE TABLE `transnos` (
 
 LOCK TABLES `transnos` WRITE;
 /*!40000 ALTER TABLE `transnos` DISABLE KEYS */;
+INSERT INTO `transnos` VALUES (9451,'GetFather','2020-01-27 20:34:10'),(9452,'GetFamilyTree','2020-01-27 20:35:16'),(9453,'fGetMother','2020-01-27 20:35:16'),(9454,'fGetFather','2020-01-27 20:35:17'),(9455,'fGetPartner','2020-01-27 20:35:17'),(9456,'fGetMother','2020-01-27 20:35:17'),(9457,'fGetFather','2020-01-27 20:35:17'),(9458,'fGetPartner','2020-01-27 20:35:17'),(9459,'fGetMother','2020-01-27 20:35:17'),(9460,'fGetFather','2020-01-27 20:35:17'),(9461,'fGetPartner','2020-01-27 20:35:17'),(9462,'fGetMother','2020-01-27 20:35:17'),(9463,'fGetFather','2020-01-27 20:35:17'),(9464,'fGetPartner','2020-01-27 20:35:17'),(9465,'fGetMother','2020-01-27 20:35:17'),(9466,'fGetFather','2020-01-27 20:35:17'),(9467,'fGetPartner','2020-01-27 20:35:17'),(9468,'fGetMother','2020-01-27 20:35:18'),(9469,'fGetFather','2020-01-27 20:35:18'),(9470,'fGetPartner','2020-01-27 20:35:18'),(9471,'fGetMother','2020-01-27 20:35:18'),(9472,'fGetFather','2020-01-27 20:35:18'),(9473,'fGetPartner','2020-01-27 20:35:18'),(9474,'fGetMother','2020-01-27 20:35:18'),(9475,'fGetFather','2020-01-27 20:35:18'),(9476,'fGetPartner','2020-01-27 20:35:18'),(9477,'fGetMother','2020-01-27 20:35:18'),(9478,'fGetFather','2020-01-27 20:35:18'),(9479,'fGetPartner','2020-01-27 20:35:18'),(9480,'fGetMother','2020-01-27 20:35:19'),(9481,'fGetFather','2020-01-27 20:35:19'),(9482,'fGetPartner','2020-01-27 20:35:19'),(9483,'fGetMother','2020-01-27 20:35:19'),(9484,'fGetFather','2020-01-27 20:35:19'),(9485,'fGetPartner','2020-01-27 20:35:19'),(9486,'fGetMother','2020-01-27 20:35:19'),(9487,'fGetFather','2020-01-27 20:35:19'),(9488,'fGetPartner','2020-01-27 20:35:19'),(9489,'fGetFather','2020-01-27 20:35:19'),(9490,'fGetMother','2020-01-27 20:35:19'),(9491,'fGetPartner','2020-01-27 20:35:19'),(9492,'fGetFather','2020-01-27 20:35:19'),(9493,'fGetMother','2020-01-27 20:35:19'),(9494,'GetFamilyTree','2020-01-27 20:35:51'),(9495,'fGetMother','2020-01-27 20:35:51'),(9496,'fGetFather','2020-01-27 20:35:51'),(9497,'fGetPartner','2020-01-27 20:35:51'),(9498,'fGetFather','2020-01-27 20:35:51'),(9499,'fGetMother','2020-01-27 20:35:51'),(9500,'fGetPartner','2020-01-27 20:35:51'),(9501,'GetPlainListOfPersons','2020-01-27 20:36:38'),(9502,'GetPlainListOfPersons','2020-01-27 20:44:38'),(9503,'GetPlainListOfPersons','2020-01-27 20:45:46'),(9504,'GetPlainListOfPersons','2020-01-27 22:01:08'),(9505,'GetPlainListOfPersons','2020-01-27 22:01:08'),(9506,'GetPlainListOfPersons','2020-01-27 22:07:21'),(9507,'GetPlainListOfPersons','2020-01-27 22:15:14'),(9508,'GetPlainListOfPersons','2020-01-27 22:21:48'),(9509,'GetAllChildrenFromOneParentWithPartner','2020-01-28 18:37:03'),(9510,'GetAllChildrenFromOneParentWithPartner','2020-01-28 19:12:17'),(9511,'GetAllChildrenFromOneParentWithPartner','2020-01-28 19:13:48'),(9512,'GetAllChildrenFromOneParentWithPartner','2020-01-28 19:14:11'),(9513,'GetAllChildrenFromOneParentWithPartner','2020-01-28 19:20:26'),(9514,'GetAllChildrenFromOneParentWithPartner','2020-01-28 19:32:01'),(9515,'GetAllChildrenFromOneParentWithPartner','2020-01-28 19:34:14'),(9516,'GetAllChildrenFromOneParentWithPartner','2020-01-28 19:39:53'),(9517,'GetAllChildrenFromOneParentWithPartner','2020-01-28 19:41:44'),(9518,'GetAllChildrenFromOneParentWithPartner','2020-01-28 19:42:29'),(9519,'GetAllChildrenFromOneParentWithPartner','2020-01-28 19:44:51'),(9520,'GetAllChildrenFromOneParentWithPartner','2020-01-28 19:46:15'),(9521,'GetAllChildrenFromOneParentWithPartner','2020-01-28 19:47:18'),(9522,'GetAllChildrenFromOneParentWithPartner','2020-01-28 19:47:29'),(9523,'GetAllChildrenFromOneParentWithPartner','2020-01-28 19:50:56'),(9524,'GetPlainListOfPersons','2020-01-28 19:53:19'),(9525,'GetPlainListOfPersons','2020-01-28 20:04:03'),(9526,'GetPlainListOfPersons','2020-01-28 20:08:50'),(9527,'GetPlainListOfPersons','2020-01-28 20:08:50'),(9528,'GetPlainListOfPersons','2020-01-28 20:12:06'),(9529,'GetAllChildrenFromOneParentWithPartner','2020-01-28 20:12:08'),(9530,'GetPlainListOfPersons','2020-01-28 20:14:33'),(9531,'GetAllChildrenFromOneParentWithPartner','2020-01-28 20:14:35'),(9532,'GetPlainListOfPersons','2020-01-28 20:15:12'),(9533,'GetAllChildrenFromOneParentWithPartner','2020-01-28 20:15:14'),(9534,'GetAllChildrenFromOneParentWithPartner','2020-01-28 20:16:55'),(9535,'GetPlainListOfPersons','2020-01-28 20:19:04'),(9536,'GetAllChildrenFromOneParentWithPartner','2020-01-28 20:19:05'),(9537,'GetPlainListOfPersons','2020-01-28 20:21:17'),(9538,'GetAllChildrenFromOneParentWithPartner','2020-01-28 20:21:18'),(9539,'GetPlainListOfPersons','2020-01-28 20:31:17'),(9540,'GetAllChildrenFromOneParentWithPartner','2020-01-28 20:31:19'),(9541,'GetPlainListOfPersons','2020-01-28 20:32:13'),(9542,'GetAllChildrenFromOneParentWithPartner','2020-01-28 20:32:15'),(9543,'GetPlainListOfPersons','2020-01-28 20:34:34'),(9544,'GetAllChildrenFromOneParentWithPartner','2020-01-28 20:34:36'),(9545,'GetPlainListOfPersons','2020-01-28 20:37:00'),(9546,'GetAllChildrenFromOneParentWithPartner','2020-01-28 20:37:01'),(9547,'GetPlainListOfPersons','2020-01-28 20:37:42'),(9548,'GetAllChildrenFromOneParentWithPartner','2020-01-28 20:37:43'),(9549,'GetPlainListOfPersons','2020-01-28 20:51:01'),(9550,'GetAllChildrenFromOneParentWithPartner','2020-01-28 20:51:02'),(9551,'GetPlainListOfPersons','2020-01-28 20:54:56'),(9552,'GetAllChildrenFromOneParentWithPartner','2020-01-28 20:54:57'),(9553,'GetPlainListOfPersons','2020-01-28 21:00:04'),(9554,'GetPlainListOfPersons','2020-01-28 21:00:05'),(9555,'GetAllChildrenFromOneParentWithPartner','2020-01-28 21:00:06'),(9556,'GetPlainListOfPersons','2020-01-28 21:00:42'),(9557,'GetPlainListOfPersons','2020-01-28 21:04:24'),(9558,'GetAllChildrenFromOneParentWithPartner','2020-01-28 21:04:30'),(9559,'GetAllChildrenFromOneParentWithPartner','2020-01-28 21:06:24'),(9560,'GetAllChildrenFromOneParentWithPartner','2020-01-28 21:06:33'),(9561,'GetPlainListOfPersons','2020-01-28 21:06:53'),(9562,'GetAllChildrenFromOneParentWithPartner','2020-01-28 21:06:59');
 /*!40000 ALTER TABLE `transnos` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1763,25 +1790,27 @@ BEGIN
 	BEGIN
 		ROLLBACK;
 		SET CompletedOk = 2;
-		INSERT INTO humans.testLog 
+		INSERT INTO humans.testlog 
 			SET TestLog = CONCAT("Transaction-", IFNULL(NewTransNo, "null"), ". ", "Error occured in SPROC: GetAllChildrenWithPartnerFromOneParent(). Rollback executed. CompletedOk= ", CompletedOk),
 				TestLogDateTime = NOW();
-		SELECT CompletedOk;
+		-- SELECT CompletedOk;
 	END;
 
 main_proc:
 
 BEGIN
-
+               
 	SET CompletedOk = 0;
-
-
 
     SET TransResult = 0;
 
 
 
     SET NewTransNo = GetTranNo("GetAllChildrenFromOneParentWithPartner");
+    
+    	INSERT INTO humans.testlog 
+			SET TestLog = CONCAT("Transaction-", IFNULL(NewTransNo, "null"), ". ", "Start SPROC GetAllChildrenWithPartnerFromOneParent() with Partent is: ", IFNULL(TheParent, 'null')),
+				TestLogDateTime = NOW();
 
     
   SELECT DISTINCT
@@ -1842,13 +1871,11 @@ BEGIN
 
     SET RecCount = FOUND_ROWS();
 
-    SELECT CompletedOk, RecCount AS Kinderengevonden;
+    -- SELECT CompletedOk, RecCount AS Kinderengevonden;
  
-    INSERT INTO humans.testlog 
-
-	SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. TransResult= ', TransResult, '. Einde SPROC: GetAllChildrenWithPartnetFromOneParent() voor persoon met ID= ', PersonIdIn, '. CompletedOk= ', CompletedOk, '. Kinderen gevonden=', RecCount),
-
-		TestLogDateTime = NOW();
+	INSERT INTO humans.testlog 
+			SET TestLog = CONCAT("Transaction-", IFNULL(NewTransNo, "null"), ". ", "End SPROC GetAllChildrenWithPartnerFromOneParent() with Parent is: ", IFNULL(TheParent, 'null')),
+				TestLogDateTime = NOW();
 
  END;
 
@@ -4758,4 +4785,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-01-27 20:48:29
+-- Dump completed on 2020-01-28 22:50:02

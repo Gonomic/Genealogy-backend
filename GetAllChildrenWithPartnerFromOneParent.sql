@@ -1,4 +1,3 @@
-DELIMITER $$
 CREATE DEFINER=`root`@`%` PROCEDURE `GetAllChildrenWithPartnerFromOneParent`(IN `TheParent` int(11))
     SQL SECURITY INVOKER
     COMMENT 'Gets all children (with their partners) from a specific parent a'
@@ -24,25 +23,27 @@ BEGIN
 	BEGIN
 		ROLLBACK;
 		SET CompletedOk = 2;
-		INSERT INTO humans.testLog 
+		INSERT INTO humans.testlog 
 			SET TestLog = CONCAT("Transaction-", IFNULL(NewTransNo, "null"), ". ", "Error occured in SPROC: GetAllChildrenWithPartnerFromOneParent(). Rollback executed. CompletedOk= ", CompletedOk),
 				TestLogDateTime = NOW();
-		SELECT CompletedOk;
+		-- SELECT CompletedOk;
 	END;
 
 main_proc:
 
 BEGIN
-
+               
 	SET CompletedOk = 0;
-
-
 
     SET TransResult = 0;
 
 
 
     SET NewTransNo = GetTranNo("GetAllChildrenFromOneParentWithPartner");
+    
+    	INSERT INTO humans.testlog 
+			SET TestLog = CONCAT("Transaction-", IFNULL(NewTransNo, "null"), ". ", "Start SPROC GetAllChildrenWithPartnerFromOneParent() with Partent is: ", IFNULL(TheParent, 'null')),
+				TestLogDateTime = NOW();
 
     
   SELECT DISTINCT
@@ -103,15 +104,12 @@ BEGIN
 
     SET RecCount = FOUND_ROWS();
 
-    SELECT CompletedOk, RecCount AS Kinderengevonden;
+    -- SELECT CompletedOk, RecCount AS Kinderengevonden;
  
-    INSERT INTO humans.testlog 
-
-	SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. TransResult= ', TransResult, '. Einde SPROC: GetAllChildrenWithPartnetFromOneParent() voor persoon met ID= ', PersonIdIn, '. CompletedOk= ', CompletedOk, '. Kinderen gevonden=', RecCount),
-
-		TestLogDateTime = NOW();
+	INSERT INTO humans.testlog 
+			SET TestLog = CONCAT("Transaction-", IFNULL(NewTransNo, "null"), ". ", "End SPROC GetAllChildrenWithPartnerFromOneParent() with Parent is: ", IFNULL(TheParent, 'null')),
+				TestLogDateTime = NOW();
 
  END;
 
-END$$
-DELIMITER ;
+END

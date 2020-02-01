@@ -25,6 +25,16 @@ BEGIN
     DECLARE CompletedOk INT;
     DECLARE NewTransNo INT;
     DECLARE TransResult INT;
+    
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+	BEGIN
+		ROLLBACK;
+		SET CompletedOk = 2;
+		INSERT INTO humans.testlog 
+			SET TestLog = CONCAT("Transaction-", IFNULL(NewTransNo, "null"), ". ", "Error occured in SPROC: AddChildToParrent(). Rollback executed. Not completed OK (NOK) for parent= ", IFNULL(Parent, 'null'), " and child= ", IFNULL(Child, 'null')),
+				TestLogDateTime = NOW();
+		SELECT "NOK";
+	END;
 	
     SET CompletedOk = true;
     SET TransResult = 0;

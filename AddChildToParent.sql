@@ -1,4 +1,4 @@
-CREATE DEFINER=`root`@`%` PROCEDURE `AddChildToParent`(IN Parent INT, IN Child INT)
+CREATE DEFINER=`root`@`%` PROCEDURE `AddChildToParent`(IN Parent INT, IN ParentGender INT, IN Child INT)
 BEGIN
 
 	-- ----------------------------------------------------------------------------------------------------------------------------------------------
@@ -10,6 +10,7 @@ BEGIN
     -- 
     -- Parameters of this Sproc:
     -- 'Parent'= The person to add the child to
+    -- 'ParentGender'= The gender of the parent the child will be added to
     -- 'Child'= The person to add as child
     -- 
     -- High level flow of this Sproc:
@@ -33,7 +34,7 @@ BEGIN
 		INSERT INTO humans.testlog 
 			SET TestLog = CONCAT("Transaction-", IFNULL(NewTransNo, "null"), ". ", "Error occured in SPROC: AddChildToParrent(). Rollback executed. Not completed OK (NOK) for parent= ", IFNULL(Parent, 'null'), " and child= ", IFNULL(Child, 'null')),
 				TestLogDateTime = NOW();
-		SELECT "NOK";
+		SELECT "NOK" as Result;
 	END;
 	
     SET CompletedOk = true;
@@ -46,15 +47,16 @@ BEGIN
 							 '. Start SPROC: AddChildToParent(). Add a child to a parent. Parent= ', IFNULL(Parent, 'null'), '. Child= ', IFNULL(Child, 'null')),
 			TestLogDateTime = NOW();
     
-	INSERT INTO relations (RelationName, RelationPerson, RelationWithPerson) 
-	VALUES (1, Parent, Child );
+    
+	INSERT INTO relations (RelationPerson, RelationName, RelationWithPerson) 
+	VALUES (Parent, ParentGender, Child );
    
 	INSERT INTO humans.testlog 
 		SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), 
 			'. TransResult= ', IFNULL(TransResult, ''),
-			'. End SPROC: AddChildToParent(). Added child: ', IFNULL(Child, 'null'), 'to parent: ', IFNULL(Parent, 'null')),
+			'. End SPROC: AddChildToParent(). Added child: ', IFNULL(Child, 'null'), ' to parent: ', IFNULL(Parent, 'null')),
 			TestLogDateTime = NOW();
 
-SELECT 'OK';
+SELECT 'OK' as Result;
    
 END

@@ -168,7 +168,7 @@ CREATE TABLE `relationnames` (
   UNIQUE KEY `RelationnameName_UNIQUE` (`RelationnameName`),
   KEY `FK_RELATIONNAMES_RELATIONTYPES_RelationtypeID` (`Relationtype`),
   CONSTRAINT `FK_RELATIONNAMES_RELATIONTYPES_RelationtypeID` FOREIGN KEY (`Relationtype`) REFERENCES `relationtypes` (`relationtypeid`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1 COMMENT='Table to contain the relation names which fit within relation types';
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1 COMMENT='Table to contain the relation names which fit within relation types';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -189,7 +189,7 @@ CREATE TABLE `relations` (
   KEY `FK_RELATIONS_PERSONS_copy_PersonID` (`RelationWithPerson`),
   CONSTRAINT `FK_RELATIONS_PERSONS_PersonID` FOREIGN KEY (`RelationPerson`) REFERENCES `persons` (`personid`),
   CONSTRAINT `FK_RELATIONS_RELATIONNAMES_RelationnameID` FOREIGN KEY (`RelationName`) REFERENCES `relationnames` (`relationnameid`)
-) ENGINE=InnoDB AUTO_INCREMENT=86 DEFAULT CHARSET=latin1 COMMENT='Table to express relations between natural persons';
+) ENGINE=InnoDB AUTO_INCREMENT=128 DEFAULT CHARSET=latin1 COMMENT='Table to express relations between natural persons';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -203,7 +203,7 @@ CREATE TABLE `relationtypes` (
   `RelationtypeID` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Id of the relationtype',
   `RelationTypeName` varchar(50) DEFAULT NULL COMMENT 'Name of the relation type',
   PRIMARY KEY (`RelationtypeID`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1 COMMENT='Table to contain the type of relations a relationname belongs to';
+) ENGINE=InnoDB AUTO_INCREMENT=100 DEFAULT CHARSET=latin1 COMMENT='Table to contain the type of relations a relationname belongs to';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -235,7 +235,7 @@ CREATE TABLE `testlog` (
   `TestlogID` int(11) NOT NULL AUTO_INCREMENT,
   `TestLogDateTime` datetime NOT NULL,
   PRIMARY KEY (`TestlogID`)
-) ENGINE=MyISAM AUTO_INCREMENT=27230 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=27831 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -251,7 +251,7 @@ CREATE TABLE `transnos` (
   `TransNoDateTime` datetime NOT NULL,
   PRIMARY KEY (`TransNoID`),
   UNIQUE KEY `idtransnos_UNIQUE` (`TransNoID`)
-) ENGINE=MyISAM AUTO_INCREMENT=9666 DEFAULT CHARSET=latin1 COMMENT='Table to register transaction numbers and the systems these are used by and provide seed for next transactionnumber';
+) ENGINE=MyISAM AUTO_INCREMENT=9967 DEFAULT CHARSET=latin1 COMMENT='Table to register transaction numbers and the systems these are used by and provide seed for next transactionnumber';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -329,6 +329,47 @@ BEGIN
 	-- Schrijf einde van deze SQL transactie naar log 
 	INSERT INTO humans.testlog 
 	SET TestLog = CONCAT('TransAction-', IFNULL(NewTranNo, 'null'), '. End FUNC: fGetFather() voor persoon: ', IFNULL(PersonIdIn, ''), '. Father found= ',IFNULL(RetVal, '')),
+		TestLogDateTime = NOW();    
+   
+	RETURN RetVal; 
+   
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP FUNCTION IF EXISTS `fGetGenderOfPerson` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`%` FUNCTION `fGetGenderOfPerson`(PersonIdIn INT) RETURNS int(11)
+    READS SQL DATA
+    DETERMINISTIC
+    COMMENT 'Function to get the gender of a person.'
+BEGIN
+
+    DECLARE RetVal INT;
+    DECLARE NewTranNo INT;
+    
+    SET NewTranNo = GetTranNo("fGetGenderOfPerson");
+
+	-- Schrijf start van deze SQL transactie naar log 
+	INSERT INTO humans.testlog 
+	SET TestLog = CONCAT('TransAction-', IFNULL(NewTranNo, 'null'), '. Start FUNC: fGetGenderOfPerson() voor persoon: ', IFNULL(PersonIdIn, '')),
+		TestLogDateTime = NOW();
+        
+    select PersonIsMale INTO RetVal from humans.persons where PersonID = PersonIdIn; 
+    
+	-- Schrijf einde van deze SQL transactie naar log 
+	INSERT INTO humans.testlog 
+	SET TestLog = CONCAT('TransAction-', IFNULL(NewTranNo, 'null'), '. End FUNC: fGetGenderOfPerson() voor persoon: ', IFNULL(PersonIdIn, '')),
 		TestLogDateTime = NOW();    
    
 	RETURN RetVal; 
@@ -767,7 +808,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`%` PROCEDURE `AddChildToParent`(IN Parent INT, IN Child INT)
+CREATE DEFINER=`root`@`%` PROCEDURE `AddChildToParent`(IN Child INT, IN Parent INT)
 BEGIN
 
 	-- ----------------------------------------------------------------------------------------------------------------------------------------------
@@ -787,13 +828,14 @@ BEGIN
     -- Note:	None
     --		
     -- TODO's:
-    -- => 01/02/2020 -> Determine if the parent is a father or mother and then add the correct relation
-    -- => 01/02/2020 -> Add logic for if the transaction fails (take one of the other Sprocs as example)
+    -- => xx/xx/xxxx -> 
     -- ----------------------------------------------------------------------------------------------------------------------------------------------
     
     DECLARE CompletedOk INT;
     DECLARE NewTransNo INT;
     DECLARE TransResult INT;
+    DECLARE GenderOfPerson INT;
+    DECLARE RelationType INT;
     
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
 	BEGIN
@@ -802,29 +844,40 @@ BEGIN
 		INSERT INTO humans.testlog 
 			SET TestLog = CONCAT("Transaction-", IFNULL(NewTransNo, "null"), ". ", "Error occured in SPROC: AddChildToParrent(). Rollback executed. Not completed OK (NOK) for parent= ", IFNULL(Parent, 'null'), " and child= ", IFNULL(Child, 'null')),
 				TestLogDateTime = NOW();
-		SELECT "NOK";
+		SELECT "NOK" as Result;
 	END;
 	
     SET CompletedOk = true;
     SET TransResult = 0;
+    
     SET NewTransNo = GetTranNo("AddChildToParent");
     
+    SET GenderOfPerson = fGetGenderOfPerson(Parent);
+    
+    IF GenderOfPerson = 1 THEN
+		SET RelationType = 1; -- Father
+	ELSEIF GenderOfPerson = 0 THEN
+		SET RelationType = 2; -- Mother
+	ELSE 
+		SET RelationType = 99; -- Gender was null, -99 signifies unexisting (parent) type
+    END IF;
       
     INSERT INTO humans.testlog 
 		SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. TransResult= ', IFNULL(TransResult, ''),
-							 '. Start SPROC: AddChildToParent(). Add a child to a parent. Parent= ', IFNULL(Parent, 'null'), '. Child= ', IFNULL(Child, 'null')),
+							 '. Start SPROC: AddChildToParent(). Add a child to a parent. Child= ', IFNULL(Child, 'null'), '. Parent= ', IFNULL(Parent, 'null')),
 			TestLogDateTime = NOW();
     
-	INSERT INTO relations (RelationName, RelationPerson, RelationWithPerson) 
-	VALUES (1, Parent, Child );
+    
+	INSERT INTO relations (RelationPerson, RelationName, RelationWithPerson) 
+	VALUES (Child, RelationType, Parent);
    
 	INSERT INTO humans.testlog 
 		SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), 
 			'. TransResult= ', IFNULL(TransResult, ''),
-			'. End SPROC: AddChildToParent(). Added child: ', IFNULL(Child, 'null'), 'to parent: ', IFNULL(Parent, 'null')),
+			'. End SPROC: AddChildToParent(). Added child: ', IFNULL(Child, 'null'), ' to parent: ', IFNULL(Parent, 'null')),
 			TestLogDateTime = NOW();
 
-SELECT 'OK';
+SELECT 'OK' as Result;
    
 END ;;
 DELIMITER ;
@@ -1819,6 +1872,8 @@ BEGIN
     
   SELECT DISTINCT
 
+    TheParent as Parent,
+    
     CONCAT(Children.PersonGivvenName, ' ', Children.PersonFamilyName) AS 'Kind',
 
     Children.PersonID AS 'KindId',
@@ -4283,6 +4338,96 @@ DELIMITER ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `RemoveChildFromParent` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`%` PROCEDURE `RemoveChildFromParent`(IN Child INT, IN Parent INT)
+BEGIN
+
+	-- ----------------------------------------------------------------------------------------------------------------------------------------------
+    -- Author: 	Frans Dekkers (GoNomics)
+    -- Date:	09-02-2020
+    -- -----------------------------------
+    -- Prurpose of this Sproc:
+    -- Remove a child from a parent
+    -- 
+    -- Parameters of this Sproc:
+    -- 'Parent'= The person to remove the child from
+    -- 'Child'= The person to remove as child
+    -- 
+    -- High level flow of this Sproc:
+    -- => Simply remove the record from table relations which ties one person as a child to another person as a parent
+    --   
+    -- Note:	None
+    --		
+    -- TODO's:
+    -- => xx/xx/xxxx -> 
+    -- ----------------------------------------------------------------------------------------------------------------------------------------------
+    
+    DECLARE CompletedOk INT;
+    DECLARE NewTransNo INT;
+    DECLARE TransResult INT;
+    DECLARE GenderOfPerson INT;
+    DECLARE RelationType INT;
+    
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+	BEGIN
+		ROLLBACK;
+		SET CompletedOk = 2;
+		INSERT INTO humans.testlog 
+			SET TestLog = CONCAT("Transaction-", IFNULL(NewTransNo, "null"), ". ", "Error occured in SPROC: RemoveChildFromParrent(). Rollback executed. Not completed OK (NOK) for parent= ", IFNULL(Parent, 'null'), " and child= ", IFNULL(Child, 'null')),
+				TestLogDateTime = NOW();
+		SELECT "NOK" as Result;
+	END;
+	
+    SET CompletedOk = true;
+    SET TransResult = 0;
+    
+    SET NewTransNo = GetTranNo("RemoveChildFromParent");
+    
+    SET GenderOfPerson = fGetGenderOfPerson(Parent);
+    
+    IF GenderOfPerson = 1 THEN
+		SET RelationType = 1; -- Father
+	ELSEIF GenderOfPerson = 0 THEN
+		SET RelationType = 2; -- Mother
+	ELSE 
+		SET RelationType = 99; -- Gender was null, -99 signifies unexisting (parent) type
+    END IF;
+      
+    INSERT INTO humans.testlog 
+		SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. TransResult= ', IFNULL(TransResult, ''),
+							 '. Start SPROC: RemoveChildFromParent(). Remove a child from a parent. Child= ', IFNULL(Child, 'null'), '. Parent= ', IFNULL(Parent, 'null')),
+			TestLogDateTime = NOW();
+    
+    
+	DELETE FROM relations 
+		WHERE RelationPerson=Child
+		AND RelationName=RelationType
+		AND RelationWithPerson=Parent;
+
+   
+	INSERT INTO humans.testlog 
+		SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), 
+			'. TransResult= ', IFNULL(TransResult, ''),
+			'. End SPROC: RemoveChildFromParent(). Removed child: ', IFNULL(Child, 'null'), ' from parent: ', IFNULL(Parent, 'null')),
+			TestLogDateTime = NOW();
+
+SELECT 'OK' as Result;
+   
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `UpdatePersonDetails` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -4842,4 +4987,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-02-01 21:09:35
+-- Dump completed on 2020-02-10  0:05:06

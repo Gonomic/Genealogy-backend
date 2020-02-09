@@ -1,19 +1,19 @@
-CREATE DEFINER=`root`@`%` PROCEDURE `AddChildToParent`(IN Child INT, IN Parent INT)
+CREATE DEFINER=`root`@`%` PROCEDURE `RemoveChildFromParent`(IN Child INT, IN Parent INT)
 BEGIN
 
 	-- ----------------------------------------------------------------------------------------------------------------------------------------------
     -- Author: 	Frans Dekkers (GoNomics)
-    -- Date:	31-01-2020
+    -- Date:	09-02-2020
     -- -----------------------------------
     -- Prurpose of this Sproc:
-    -- Add a child to a parent
+    -- Remove a child from a parent
     -- 
     -- Parameters of this Sproc:
-    -- 'Parent'= The person to add the child to
-    -- 'Child'= The person to add as child
+    -- 'Parent'= The person to remove the child from
+    -- 'Child'= The person to remove as child
     -- 
     -- High level flow of this Sproc:
-    -- => Simply add a record to table relations which ties one person as a child to another person as a father
+    -- => Simply remove the record from table relations which ties one person as a child to another person as a parent
     --   
     -- Note:	None
     --		
@@ -32,7 +32,7 @@ BEGIN
 		ROLLBACK;
 		SET CompletedOk = 2;
 		INSERT INTO humans.testlog 
-			SET TestLog = CONCAT("Transaction-", IFNULL(NewTransNo, "null"), ". ", "Error occured in SPROC: AddChildToParrent(). Rollback executed. Not completed OK (NOK) for parent= ", IFNULL(Parent, 'null'), " and child= ", IFNULL(Child, 'null')),
+			SET TestLog = CONCAT("Transaction-", IFNULL(NewTransNo, "null"), ". ", "Error occured in SPROC: RemoveChildFromParrent(). Rollback executed. Not completed OK (NOK) for parent= ", IFNULL(Parent, 'null'), " and child= ", IFNULL(Child, 'null')),
 				TestLogDateTime = NOW();
 		SELECT "NOK" as Result;
 	END;
@@ -40,7 +40,7 @@ BEGIN
     SET CompletedOk = true;
     SET TransResult = 0;
     
-    SET NewTransNo = GetTranNo("AddChildToParent");
+    SET NewTransNo = GetTranNo("RemoveChildFromParent");
     
     SET GenderOfPerson = fGetGenderOfPerson(Parent);
     
@@ -54,17 +54,20 @@ BEGIN
       
     INSERT INTO humans.testlog 
 		SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. TransResult= ', IFNULL(TransResult, ''),
-							 '. Start SPROC: AddChildToParent(). Add a child to a parent. Child= ', IFNULL(Child, 'null'), '. Parent= ', IFNULL(Parent, 'null')),
+							 '. Start SPROC: RemoveChildFromParent(). Remove a child from a parent. Child= ', IFNULL(Child, 'null'), '. Parent= ', IFNULL(Parent, 'null')),
 			TestLogDateTime = NOW();
     
     
-	INSERT INTO relations (RelationPerson, RelationName, RelationWithPerson) 
-	VALUES (Child, RelationType, Parent);
+	DELETE FROM relations 
+		WHERE RelationPerson=Child
+		AND RelationName=RelationType
+		AND RelationWithPerson=Parent;
+
    
 	INSERT INTO humans.testlog 
 		SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), 
 			'. TransResult= ', IFNULL(TransResult, ''),
-			'. End SPROC: AddChildToParent(). Added child: ', IFNULL(Child, 'null'), ' to parent: ', IFNULL(Parent, 'null')),
+			'. End SPROC: RemoveChildFromParent(). Removed child: ', IFNULL(Child, 'null'), ' from parent: ', IFNULL(Parent, 'null')),
 			TestLogDateTime = NOW();
 
 SELECT 'OK' as Result;

@@ -18,7 +18,7 @@ BEGIN
     
 	-- Schrijf einde van deze SQL transactie naar log 
 	INSERT INTO humans.testlog 
-	SET TestLog = CONCAT('TransAction-', IFNULL(NewTranNo, 'null'), '. End FUNC: fGetGenderOfPerson() voor persoon: ', IFNULL(PersonIdIn, '')),
+	SET TestLog = CONCAT('TransAction-', IFNULL(NewTranNo, 'null'), '. End FUNC: fGetGenderOfPerson() voor persoon: ', IFNULL(PersonIdIn, ''), '. Gender= ', IFNULL(RetVal, 'null')),
 		TestLogDateTime = NOW();    
    
 	RETURN RetVal; 

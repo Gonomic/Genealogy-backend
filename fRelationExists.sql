@@ -23,7 +23,7 @@ BEGIN
     
 	-- Schrijf einde van deze SQL transactie naar log 
 	INSERT INTO humans.testlog 
-	SET TestLog = CONCAT('TransAction-', IFNULL(NewTranNo, 'null'), '. End FUNC: fRelationExists() for child= ', IFNULL(Child, 'null'), ' and parent= ', IFNULL(Parent, 'null')),
+	SET TestLog = CONCAT('TransAction-', IFNULL(NewTranNo, 'null'), '. End FUNC: fRelationExists() for child= ', IFNULL(Child, 'null'), ' and parent= ', IFNULL(Parent, 'null'), '. Relation exists= ', IFNULL(RetVal, 'null')),
 		TestLogDateTime = NOW();    
    
 	RETURN RetVal; 

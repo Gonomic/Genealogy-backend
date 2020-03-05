@@ -182,250 +182,128 @@ transactionBody:BEGIN
 			SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. Moeder in transactie aanwezig, moeder wordt toegevoegd. Moeder ID= ', IFNULL(PersonMotherIdIn, 'null')),
 				TestLogDateTime = NOW();
 
-			SET @RelNameID = (SELECT RelationnameID FROM relationnames WHERE RelationnameName = "Moeder");
+			SET @RelNameID = fGetRelationId("Moeder");
+            
+			INSERT INTO humans.relations
 
-			INSERT INTO relations
+				(RelationName, 
 
-			SET RelationName = @RelNameId,
+				RelationPerson,
 
-				RelationPerson = PersonIDIn,
+				RelationWithPerson)
+			
+            VALUES
+				
+                (@RelNameID,
 
-				RelationWithPerson = PersonMotherIdIn;
+				IdOfInsertedPerson,
+                
+                PersonMotherIdIn);
 
 			SET TransResult = TransResult + 1;
 
 			INSERT INTO humans.testlog
-				SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. TransResult= ', IFNULL(TransResult, 'null'), '. Toegevoegd in database moeder met ID= ', IFNULL(PersonMotherIdIn, 'null'), ' voor persoon: ', PersonGivvenName, ' ', PersonFamilyName ),
+				SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. TransResult= ', IFNULL(TransResult, 'null'), '. Toegevoegd in database moeder met ID= ', IFNULL(PersonMotherIdIn, 'null'), ' voor persoon: ', IFNULL(PersonGivvenNameIn, null), ' ', IFNULL(PersonFamilyNameIn, null) ),
 				TestLogDateTime = NOW();
 
 		END IF;
 
-	commit;
-	LEAVE transactionBody;
 
-		-- Based on if Father params are filled do either nothing or update or insert Father
+		-- Based on if Father params are filled do either nothing or insert Father
+		-- -------------------------------------------------
+		-- If Father params are filled
+		-- INSERT Father 
 
-		-- --------------------------------------------------
-
-		-- If Father param is filled
-
-		-- Determine if Person has Father
-
-		-- UPDATE Father if Person already has Father
-
-		-- INSERT Father if Person does not yet have Father
-
-		IF PersonFatherIn <> '' OR PersonFatherIn <> null THEN
-
+		IF PersonFatherIdIn <=> '' OR PersonFatherIdIn <=> null THEN
 			INSERT INTO humans.testlog
-
-			SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. Vader in transactie aanwezig. Vader ID= ', IFNULL(PersonFatherIdIn, 'null')),
-
+			SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. Vader NIET in transactie aanwezig, vader wordt niet toegevoegd'),
+				TestLogDateTime = NOW();
+        
+        ELSE
+			INSERT INTO humans.testlog
+			SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. Vader in transactie aanwezig, vader wordt toegevoegd. Vader ID= ', IFNULL(PersonFatherIdIn, 'null')),
 				TestLogDateTime = NOW();
 
-			SET RecCount = 
+			SET @RelNameID = fGetRelationId("Vader");
+            
+			INSERT INTO humans.relations
 
-					(SELECT COUNT(*)
+				(RelationName, 
 
-						FROM relations R
+				RelationPerson,
 
-						JOIN relationnames RN
+				RelationWithPerson)
+			
+            VALUES
+				
+                (@RelNameID,
 
-							ON R.RelationName = RN.RelationnameID
+				IdOfInsertedPerson,
+                
+                PersonFatherIdIn);
 
-						WHERE R.RelationPerson = PersonIDIn AND
-
-							RN.RelationnameName = "Vader");
+			SET TransResult = TransResult + 1;
 
 			INSERT INTO humans.testlog
-
-			SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. In database aantal gevonden vaders= ', IFNULL(RecCount, '0')),
-
+				SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. TransResult= ', IFNULL(TransResult, 'null'), '. Toegevoegd in database vader met ID= ', IFNULL(PersonFatherIdIn, 'null'), ' voor persoon: ', IFNULL(PersonGivvenNameIn, null), ' ', IFNULL(PersonFamilyNameIn, null) ),
 				TestLogDateTime = NOW();
-
-			IF RecCount > 0 THEN
-
-				-- Als vader wel bestaat;
-
-				UPDATE relations R, relationnames RN
-
-				SET R.RelationWithPerson=PersonFatherIdIn
-
-				WHERE R.RelationName = RN.RelationnameID AND
-
-						R.RelationPerson = PersonIDIn AND 
-
-						RN.RelationnameName = "Vader";
-
-				SET TransResult = TransResult + 1;
-
-				INSERT INTO humans.testlog
-
-					SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. TransResult= ', IFNULL(TransResult, 'null'), '. Vader gevonden in database en updated.'),
-
-						TestLogDateTime = NOW();
-
-			ELSEIF RecCount <= 0 THEN
-
-				-- Als vader NIET bestaat;
-
-				SET @RelNameID = (SELECT RelationnameID FROM relationnames WHERE RelationnameName = "Vader");
-
-				INSERT INTO relations
-
-					SET RelationName = @RelNameID,
-
-						RelationPerson = PersonIDIn,
-
-						RelationWithPerson = PersonFatherIdIn;
-
-				SET TransResult = TransResult + 1;
-
-				INSERT INTO humans.testlog
-
-					SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. TransResult= ', IFNULL(TransResult, 'null'), '. Toegevoegd in database vader met ID= ', IFNULL(PersonFatherIdIn, 'null')),
-
-						TestLogDateTime = NOW();
-
-			END IF;
 
 		END IF;
 
-		-- Based on if Partner params are filled do either nothing or update or insert Partner
+	
+    
+		-- Based on if Partner params are filled do either nothing or insert Partner under condition Partner does NOT already exist
+		-- -------------------------------------------------
+		-- If Partner params are filled
+		-- INSERT Partner  
 
-		-- ----------------------------------------------------
-
-		-- If Partner param is filled
-
-		-- Determine if Person has Partner
-
-		-- UPDATE Partner if Person already has Partner
-
-		-- INSERT Partner if Person does not yet have Partner
-
-		IF PersonPartnerIn <> '' OR PersonPartnerIn <> null THEN
-
+		IF PersonPartnerIdIn <=> '' OR PersonPartnerIdIn <=> null THEN
 			INSERT INTO humans.testlog
-
-			SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. Partner in transactie aanwezig. Partner ID= ', IFNULL(PersonPartnerIdIn, 'null')),
-
+			SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. Partner NIET in transactie aanwezig, er wordt geen partner toegevoegd'),
+				TestLogDateTime = NOW();
+        
+        ELSE
+			INSERT INTO humans.testlog
+			SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. Partner in transactie aanwezig, partner wordt toegevoegd. Partner ID= ', IFNULL(PersonPartnerIdIn, 'null')),
 				TestLogDateTime = NOW();
 
-			SET RecCount = 
+			SET @RelNameID = fGetRelationId("Partner");
+            
+            IF fCheckPersonAlreadyExistsAsPartner(PersonPartnerIdIn) THEN
+				INSERT INTO humans.testlog
+				SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. Dubbele registratie! Opgegeven partner was al als partner geregistreerd en wordt NIET opnieuw geregistreerd als partner. Partner ID= ', IFNULL(PersonPartnerIdIn, 'null')),
+					TestLogDateTime = NOW();
 
-				(SELECT COUNT(*)
+            ELSE
+            
+				INSERT INTO humans.relations
 
-					FROM relations R
+					(RelationName, 
 
-					JOIN relationnames RN
+					RelationPerson,
 
-						ON R.RelationName = RN.RelationnameID
+					RelationWithPerson)
+				
+				VALUES
+					
+					(@RelNameID,
 
-					WHERE R.RelationPerson = PersonIDIn AND
-
-						RN.RelationnameName = "Partner");
-
-			INSERT INTO humans.testlog
-
-			SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. In database aantal gevonden partners= ', IFNULL(RecCount, '0')),
-
-				TestLogDateTime = NOW();
-
-			IF RecCount > 0 THEN
-
-				-- Als partner wel bestaat;
-
-				-- -> Update Partner for this Person
-
-				UPDATE relations R, relationnames RN
-
-				SET R.RelationWithPerson=PersonPartnerIdIn
-
-				WHERE R.RelationName = RN.RelationnameID AND
-
-						R.RelationPerson = PersonIDIn AND 
-
-						RN.RelationnameName = "Partner";
+					IdOfInsertedPerson,
+					
+					PersonPartnerIdIn);
 
 				SET TransResult = TransResult + 1;
 
 				INSERT INTO humans.testlog
-
-					SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. TransResult= ', IFNULL(TransResult, 'null'), '. Partner in database en updated.'),
-
-						TestLogDateTime = NOW();
-
-				-- -> Update as well Partner field for the other person (the partner)
-
-				UPDATE relations R, relationnames RN
-
-				SET R.RelationPerson=PersonPartnerIdIn,
-
-					R.RelationWithPerson=PersonIDIn
-
-				WHERE R.RelationName = RN.RelationnameID AND
-
-						R.RelationPerson = PersonPartnerIdIn AND
-
-						R.RelationWithPerson=PersonIdIn AND
-
-						RN.RelationnameName = "Partner";
-
-				SET TransResult = TransResult + 1;
-
-				INSERT INTO humans.testlog
-
-					SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. TransResult= ', IFNULL(TransResult, 'null'), '. Reverse partner gevonden in database en updated.'),
-
-						TestLogDateTime = NOW();
-
-			ELSEIF RecCount <= 0 THEN
-
-				-- Als partner NIET bestaat;
-
-				-- -> Insert Partner for tis Person
-
-				SET @RelNameID = (SELECT RelationnameID FROM relationnames WHERE RelationnameName = 'Partner');
-
-				INSERT INTO relations
-
-				SET RelationName = @RelNameID,
-
-					RelationPerson = PersonIDIn,
-
-					RelationWithPerson = PersonPartnerIdIn;
-
-				SET TransResult = TransResult + 1;
-
-				INSERT INTO humans.testlog
-
-					SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. TransResult= ', IFNULL(TransResult, 'null'), '. Partner toegevoegd aan database ID= ', PersonPartnerIdIn),
-
-						TestLogDateTime = NOW();
-
-				-- -> Insert as well Partner field for the other Person (the partner) bot now for this Person as partner
-
-				INSERT INTO relations
-
-				SET RelationName = @RelNameID,
-
-					RelationPerson = PersonPartnerIDIn,
-
-					RelationWithPerson = PersonIDIn;
-
-				SET TransResult = TransResult + 1;
-
-				INSERT INTO humans.testlog
-
-					SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. TransResult= ', IFNULL(TransResult, 'null'), '. Reverse Partner toegevoegd aan database ID= ', PersonIDIn),
-
-						TestLogDateTime = NOW();
+					SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. TransResult= ', IFNULL(TransResult, 'null'), '. Toegevoegd in database partner met ID= ', IFNULL(PersonPartnerIdIn, 'null'), ' voor persoon: ', IFNULL(PersonGivvenNameIn, null), ' ', IFNULL(PersonFamilyNameIn, null) ),
+					TestLogDateTime = NOW();
 
 			END IF;
-
-		END IF;  
-
-	COMMIT;
+            
+		END IF;
+	
+    COMMIT;
+    
 END transactionBody;
     
 

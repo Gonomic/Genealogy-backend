@@ -6,9 +6,9 @@ CREATE DEFINER=`root`@`%` PROCEDURE `AddPerson`(IN `PersonIdIn` INT(11),
                                                 IN `PersonDateOfDeathIn` DATE, 
                                                 IN `PersonPlaceOfDeathIn` VARCHAR(50), 
                                                 IN `PersonIsMaleIn` TINYINT(1), 
-                                                IN `PersonPartnerIdIn` INT(11), 
-                                                IN `PersonFatherIdIn` INT(11), 
-                                                IN `PersonMotherIdIn` INT(11))
+                                                IN `PersonMotherIdIn` INT(11),
+                                                IN `PersonFatherIdIn` INT(11),
+                                                IN `PersonPartnerIdIn` INT(11))
     SQL SECURITY INVOKER
     COMMENT 'To update the details of a specific person'
 BEGIN

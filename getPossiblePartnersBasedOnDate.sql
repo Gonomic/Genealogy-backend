@@ -73,7 +73,7 @@ BEGIN
 
     SELECT DISTINCT
 
-        P.PersonID as PossiblePartnerID, 
+        P.PersonID as PersonID, 
 
 		concat(P.PersonGivvenName, ' ', P.PersonFamilyName) as PossiblePartner,
 

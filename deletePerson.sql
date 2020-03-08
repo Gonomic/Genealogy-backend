@@ -1,4 +1,4 @@
-CREATE DEFINER=`root`@`%` PROCEDURE `deletePerson`(IN `PersonIdIn` INT, IN MotherIdIn INT, IN FatherIdIn INT, IN PartnerIdIn INT, TimestampIn DATETIME)
+CREATE DEFINER=`root`@`%` PROCEDURE `deletePerson`(IN `PersonIdIn` INT, IN MotherIdIn INT, IN FatherIdIn INT, IN PartnerIdIn INT, TimestampInAsString CHAR(30))
     SQL SECURITY INVOKER
     COMMENT 'To delete a Person from the database, incl. links from Family to this Person.'
 BEGIN
@@ -12,6 +12,8 @@ BEGIN
     -- 2 = Transaction aborted due to problems during update and rollback performed
 
     -- ...
+
+	DECLARE TimestampIn timestamp;
 
     DECLARE CompletedOk int;
 
@@ -48,7 +50,11 @@ BEGIN
 		SELECT CompletedOk;
 
 	END;
-
+    
+    select TimestampInAsString;
+	
+    SET TimestampIn = STR_TO_DATE(TimestampInAsString, "%Y-%m-%d T%");
+    
     SET CompletedOk = 0;
 
     SET TransResult = 0;
@@ -57,7 +63,7 @@ BEGIN
 
     -- Schrijf start van deze SQL transactie naar log
     INSERT INTO humans.testlog 
-		SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. TransResult= ', TransResult, '. Start SPROC: deletePerson() voor persoon met ID= ', PersonIdIn),
+		SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. TransResult= ', IFNULL(TransResult, 'null'), '. Start SPROC: deletePerson() voor persoon met ID= ', PersonIdIn),
 		TestLogDateTime = NOW();
   
   transactionBody:BEGIN
@@ -69,9 +75,7 @@ BEGIN
 	    SET CompletedOk = 1;
 
 	    INSERT INTO humans.testLog 
-
 		    SET TestLog = CONCAT("Transaction-", IFNULL(NewTransNo, "null"), ". TransResult= ", TransResult, ". Records has been changed in mean time by somebody else. Deletion aborted."),
-
 			    TestLogDateTime = NOW();
 
 	    SELECT CompletedOk, 'RecordWasChangedBySomeBodyElse';

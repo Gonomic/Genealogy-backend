@@ -1,4 +1,3 @@
-DELIMITER $$
 CREATE DEFINER=`root`@`%` PROCEDURE `GetPersonDetails`(IN `PersonIDin` INT(11))
     SQL SECURITY INVOKER
     COMMENT 'To get the details of a specific person'
@@ -24,7 +23,7 @@ SELECT DISTINCT
 
     P.PersonIsMale,
 
-    P.Timestamp,
+    DATE_FORMAT(P.Timestamp,'%Y-%m-%d %T') as Timestamp, 
 
 	M.MotherID,
 
@@ -118,5 +117,4 @@ SELECT DISTINCT
 
     WHERE PersonID = PersonIDin;
 
- END$$
-DELIMITER ;
+ END

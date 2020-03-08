@@ -233,11 +233,11 @@ transactionBody:BEGIN
 			UPDATE humans.relations 
 				SET RelationWithPerson = PersonPartnerIdIn
                 WHERE RelationPerson = PersonIdIn
-                AND RelationName = fGetRelationId("Vader");
+                AND RelationName = fGetRelationId("Partner");
 			UPDATE humans.relations 
 				SET RelationWithPerson = PersonIdIn 
                 WHERE RelationPerson = PersonPartnerIdIn
-                AND RelationName = fGetRelationId("Vader");                
+                AND RelationName = fGetRelationId("Partner");                
             INSERT INTO humans.testlog
 			SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. Partner in transactie aanwezig. Partner in database gewijzigd. Partner ID= ', IFNULL(PersonPartnerIdIn, 'null')),
 				TestLogDateTime = NOW();

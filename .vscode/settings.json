@@ -1,0 +1,13 @@
+{
+    "sqltools.connections": [
+        {
+            "database": "humans",
+            "dialect": "MySQL",
+            "name": "Humans Admin on GEN-MYSQL-1",
+            "password": "yLSivovg8jvkbSDPtUsx",
+            "port": 33306,
+            "server": "10.10.1.3",
+            "username": "humansAdmin"
+        }
+    ]
+}

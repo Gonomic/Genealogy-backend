@@ -16,6 +16,8 @@ BEGIN
 	DECLARE TimestampIn timestamp;
 
     DECLARE CompletedOk int;
+    
+    DECLARE Result CHAR(40);
 
     -- NewTransNo is autonumber counter fetched from a seperate table and used for logging in a seperate log table
 	DECLARE NewTransNo int;
@@ -40,6 +42,8 @@ BEGIN
 		ROLLBACK;
 
 		SET CompletedOk = 2;
+        
+        SET Result = "Error";
 
 		INSERT INTO humans.testlog 
 
@@ -47,13 +51,11 @@ BEGIN
 								 IFNULL(MessageText, "null"), "/State=", IFNULL(ReturnedSqlState, "null"), "/ErrNo=", IFNULL(MySqlErrNo, "null"), "). Rollback executed. CompletedOk= ", CompletedOk),
 								 TestLogDateTime = NOW();
 
-		SELECT CompletedOk;
+		SELECT CompletedOk, Result;
 
 	END;
     
-    select TimestampInAsString;
-	
-    SET TimestampIn = STR_TO_DATE(TimestampInAsString, "%Y-%m-%d T%");
+     SET TimestampIn = STR_TO_DATE(TimestampInAsString, "%Y-%m-%d %T");
     
     SET CompletedOk = 0;
 
@@ -73,12 +75,14 @@ BEGIN
     IF RecordHasBeenChangedBySomebodyElse(PersonIdIn, TimeStampIn) THEN
 
 	    SET CompletedOk = 1;
+        
+        SET Result = "RecordHasBeenChangedBySomebodyElse";
 
 	    INSERT INTO humans.testLog 
 		    SET TestLog = CONCAT("Transaction-", IFNULL(NewTransNo, "null"), ". TransResult= ", TransResult, ". Records has been changed in mean time by somebody else. Deletion aborted."),
 			    TestLogDateTime = NOW();
 
-	    SELECT CompletedOk, 'RecordWasChangedBySomeBodyElse';
+	    SELECT CompletedOk, Result;
 
 	    LEAVE transactionBody;
 
@@ -137,5 +141,9 @@ BEGIN
     COMMIT;
 
 END ;
+
+SET Result = "DeletionWasSuccesful";
+SELECT CompletedOk, Result;
+
 
 END

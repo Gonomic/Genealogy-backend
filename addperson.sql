@@ -298,6 +298,29 @@ transactionBody:BEGIN
 					SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. TransResult= ', IFNULL(TransResult, 'null'), '. Toegevoegd in database partner met ID= ', IFNULL(PersonPartnerIdIn, 'null'), ' voor persoon: ', IFNULL(PersonGivvenNameIn, null), ' ', IFNULL(PersonFamilyNameIn, null) ),
 					TestLogDateTime = NOW();
 
+				INSERT INTO humans.relations
+
+					(RelationName, 
+
+					RelationPerson,
+
+					RelationWithPerson)
+				
+				VALUES
+					
+					(@RelNameID,
+                    
+					PersonPartnerIdIn,
+                    
+					IdOfInsertedPerson
+					
+					);
+
+				SET TransResult = TransResult + 1;
+
+				INSERT INTO humans.testlog
+					SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. TransResult= ', IFNULL(TransResult, 'null'), '. Toegevoegd in database partner ', IFNULL(PersonGivvenNameIn, null), ' ', IFNULL(PersonFamilyNameIn, null), ' voor persoon met ID= ', IFNULL(PersonPartnerIdIn, 'null'), '.'),
+					TestLogDateTime = NOW();
 			END IF;
             
 		END IF;

@@ -88,62 +88,80 @@ BEGIN
 
     END IF;
 
-
-	-- First delete parents and partner
-    -- Mother
-	DELETE FROM humans.relations 
-		WHERE RelationPerson = PersonIdIn
-			AND RelationWithPerson = MotherIdIn
-			AND RelationName = fGetRelationId("Moeder");
-	SET TransResult = TransResult + 1;
-	INSERT INTO humans.testlog
-		SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), ', Transresult= ', IFNULL(TransResult, 'null'), '. Moeder relatie van moeder met ID= ', IFNULL(MotherIdIn, 'null'), ' en Persoon met ID= ', IFNULL(PersonIdIn, 'null'), ' is verwijderd uit de database als deze in de database bestond.'),
-			TestLogDateTime = NOW();
-
-    -- Father
-	DELETE FROM humans.relations 
-		WHERE RelationPerson = PersonIdIn
-			AND RelationWithPerson = FatherIdIn
-			AND RelationName = fGetRelationId("Vader");
-	SET TransResult = TransResult + 1;
-	INSERT INTO humans.testlog
-		SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), ', TransResult= ', IFNULL(TransResult, 'null'), '. Vader relatie van vader met ID= ', IFNULL(FatherIdIn, 'null'), ' en Persoon met ID= ', IFNULL(PersonIdIn, 'null'), ' is verwijderd uit de database als deze in de database bestond.'),
-			TestLogDateTime = NOW();    
     
-    -- Partner
-	DELETE FROM humans.relations 
-		WHERE RelationPerson = PersonIdIn
-		AND RelationWithPerson = PartnerIdIn
-		AND RelationName = fGetRelationId("Partner");
-	DELETE FROM humans.relations 
-		WHERE RelationPerson = PartnerIdIn
-        AND RelationWithPerson = PersonIdIn
-		AND RelationName = fGetRelationId("Partner");
-	SET TransResult = TransResult + 1;
-	INSERT INTO humans.testlog
-		SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), ', TransResult= ', IFNULL(TransResult, 'null'), '. Partner relatie van partner met ID= ', IFNULL(PartnerIdIn, 'null'), ' en persoon met ID= ', IFNULL(PersonIdIn, 'null'), ' is verwijderd uit de database.'),
-			TestLogDateTime = NOW();
+        
+    -- First delete Mother if Mother is there
+    IF MotherIdIn != null THEN
+		DELETE FROM humans.relations 
+			WHERE RelationPerson = PersonIdIn
+				AND RelationWithPerson = MotherIdIn
+				AND RelationName = fGetRelationId("Moeder");
+		SET TransResult = TransResult + 1;
+		INSERT INTO humans.testlog
+			SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), ', Transresult= ', IFNULL(TransResult, 'null'), '. Moeder relatie van moeder met ID= ', IFNULL(MotherIdIn, 'null'), ' en Persoon met ID= ', IFNULL(PersonIdIn, 'null'), ' is verwijderd uit de database als deze in de database bestond.'),
+				TestLogDateTime = NOW();
+	ELSE
+		INSERT INTO humans.testlog
+			SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), ', Transresult= ', IFNULL(TransResult, 'null'), '. Persoon met ID= ', IFNULL(PersonIdIn, 'null'), ' heeft geen Moeder.'),
+				TestLogDateTime = NOW();
+    END IF;
 
-    -- Finaly delete Person 
+    -- then Father if father is there
+    IF FatherIdIn != null THEN
+		DELETE FROM humans.relations 
+			WHERE RelationPerson = PersonIdIn
+				AND RelationWithPerson = FatherIdIn
+				AND RelationName = fGetRelationId("Vader");
+		SET TransResult = TransResult + 1;
+		INSERT INTO humans.testlog
+			SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), ', TransResult= ', IFNULL(TransResult, 'null'), '. Vader relatie van vader met ID= ', IFNULL(FatherIdIn, 'null'), ' en Persoon met ID= ', IFNULL(PersonIdIn, 'null'), ' is verwijderd uit de database als deze in de database bestond.'),
+				TestLogDateTime = NOW();    
+	ELSE 
+		INSERT INTO humans.testlog
+		SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), ', Transresult= ', IFNULL(TransResult, 'null'), '. Persoon met ID= ', IFNULL(PersonIdIn, 'null'), ' heeft geen Vader.'),
+			TestLogDateTime = NOW();
+    END IF;
+    
+    -- and then Partner if partner is there
+    IF PartnerIdIn != null THEN
+		DELETE FROM humans.relations 
+			WHERE RelationPerson = PersonIdIn
+			AND RelationWithPerson = PartnerIdIn
+			AND RelationName = fGetRelationId("Partner");
+	   INSERT INTO humans.testlog
+			SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), ', TransResult= ', IFNULL(TransResult, 'null'), '. Partner: ', IFNULL(PartnerIdIn, 'null'), ' verwijderd van persoon: ', IFNULL(PersonIdIn, 'null'), '.'),
+				TestLogDateTime = NOW(); 
+		DELETE FROM humans.relations 
+			WHERE RelationPerson = PartnerIdIn
+			AND RelationWithPerson = PersonIdIn
+			AND RelationName = fGetRelationId("Partner");
+		SET TransResult = TransResult + 1;
+		INSERT INTO humans.testlog
+			SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), ', TransResult= ', IFNULL(TransResult, 'null'), '. Persoon: ', IFNULL(PersonIdIn, 'null'), ' verwijderd als partner van persoon: ', IFNULL(PartnerIdIn, 'null'), '.'),
+				TestLogDateTime = NOW();
+	ELSE 
+		INSERT INTO humans.testlog
+		SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), ', Transresult= ', IFNULL(TransResult, 'null'), '. Persoon met ID= ', IFNULL(PersonIdIn, 'null'), ' heeft geen Partner.'),
+			TestLogDateTime = NOW();
+    END IF;
+	
+    -- Lastly delete Person itself 
     DELETE FROM persons
 		WHERE PersonID = PersonIdIn;
 
     INSERT INTO humans.testlog 
-		SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), ', TransResult= ', IFNULL(TransResult, 'null'), '. Persoon met ID= ', IFNULL(PersonIdIn, 'null'), ' is met al zijn relaties verwijderd uit de database.'),
+		SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), ', TransResult= ', IFNULL(TransResult, 'null'), '. Persoon met ID= ', IFNULL(PersonIdIn, 'null'), ' is verwijderd uit de database.'),
 		TestLogDateTime = NOW();
-
-    SELECT CompletedOk, "DeletionHasFinished";
-
-    INSERT INTO humans.testlog 
+        
+	INSERT INTO humans.testlog 
 		SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. TransResult= ', IFNULL(TransResult, 'null'), '. SPROC DeletePerson afgerond. CompletedOk= ', IFNULL(CompletedOk, 'null')),
 		TestLogDateTime = NOW();
-	
+    
     COMMIT;
-
+    
 END ;
 
 SET Result = "DeletionWasSuccesful";
 SELECT CompletedOk, Result;
-
 
 END

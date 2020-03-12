@@ -1,4 +1,3 @@
-DELIMITER $$
 CREATE DEFINER=`root`@`%` FUNCTION `RecordHasBeenChangedBySomebodyElse`(`PersonIdIn` INT, `DateTimeIn` DATETIME) RETURNS tinyint(1)
     DETERMINISTIC
     SQL SECURITY INVOKER
@@ -7,7 +6,7 @@ BEGIN
 
 
 
-	DECLARE ReturnValue tinyint(1);
+	DECLARE ReturnValue BOOL;
 
 	DECLARE StoredDateTime timestamp;
 
@@ -15,15 +14,13 @@ BEGIN
 
 SELECT persons.Timestamp FROM persons WHERE PersonID = PersonIdIn INTO StoredDateTime;
 
+IF  StoredDateTime = DateTimeIn THEN
 
-
-IF  StoredDateTime <> DateTimeIn THEN
-
-	SET ReturnValue = TRUE;
+	SET ReturnValue = FALSE;
 
 ELSE
 
-	SET ReturnValue = FALSE;
+	SET ReturnValue = TRUE;
 
 END IF;
 
@@ -33,5 +30,4 @@ RETURN ReturnValue;
 
 
 
-END$$
-DELIMITER ;
+END

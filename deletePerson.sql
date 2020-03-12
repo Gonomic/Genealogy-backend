@@ -1,4 +1,4 @@
-CREATE DEFINER=`root`@`%` PROCEDURE `deletePerson`(IN `PersonIdIn` INT, IN MotherIdIn INT, IN FatherIdIn INT, IN PartnerIdIn INT, TimestampInAsString CHAR(30))
+CREATE DEFINER=`root`@`%` PROCEDURE `deletePerson`(IN `PersonIdIn` INT, IN MotherIdIn INT, IN FatherIdIn INT, IN PartnerIdIn INT, IN TimestampInAsString CHAR(30))
     SQL SECURITY INVOKER
     COMMENT 'To delete a Person from the database, incl. links from Family to this Person.'
 BEGIN
@@ -46,7 +46,6 @@ BEGIN
         SET Result = "Error";
 
 		INSERT INTO humans.testlog 
-
 			SET TestLog = CONCAT("Transaction-", IFNULL(NewTransNo, "null"), " SPROC deletePerson(). Error occured()=", 
 								 IFNULL(MessageText, "null"), "/State=", IFNULL(ReturnedSqlState, "null"), "/ErrNo=", IFNULL(MySqlErrNo, "null"), "). Rollback executed. CompletedOk= ", CompletedOk),
 								 TestLogDateTime = NOW();
@@ -55,7 +54,7 @@ BEGIN
 
 	END;
     
-     SET TimestampIn = STR_TO_DATE(TimestampInAsString, "%Y-%m-%d %T");
+    SET TimestampIn = STR_TO_DATE(TimestampInAsString, "%Y-%m-%d %T");
     
     SET CompletedOk = 0;
 
@@ -71,14 +70,31 @@ BEGIN
   transactionBody:BEGIN
 
 	START TRANSACTION;
+    
+    IF NOT fPersonExists(PersonIdIn) THEN
+    
+		SET CompletedOk = CompletedOk + 1;
         
+        SET Result = "RecordDoesNotExistAnyMore";
+        
+	    INSERT INTO humans.testlog 
+		    SET TestLog = CONCAT("Transaction-", IFNULL(NewTransNo, "null"), ". TransResult= ", TransResult, ". Record does not exist anymore. Deletion aborted."),
+			    TestLogDateTime = NOW();
+
+	    SELECT CompletedOk, Result;
+
+	    LEAVE transactionBody;
+
+    END IF;
+    
+    
     IF RecordHasBeenChangedBySomebodyElse(PersonIdIn, TimeStampIn) THEN
 
 	    SET CompletedOk = 1;
         
         SET Result = "RecordHasBeenChangedBySomebodyElse";
-
-	    INSERT INTO humans.testLog 
+        
+	    INSERT INTO humans.testlog 
 		    SET TestLog = CONCAT("Transaction-", IFNULL(NewTransNo, "null"), ". TransResult= ", TransResult, ". Records has been changed in mean time by somebody else. Deletion aborted."),
 			    TestLogDateTime = NOW();
 
@@ -88,48 +104,50 @@ BEGIN
 
     END IF;
 
-    
-        
     -- First delete Mother if Mother is there
-    IF MotherIdIn != null THEN
-		DELETE FROM humans.relations 
+    IF MotherIdIn IS NULL THEN
+		INSERT INTO humans.testlog
+		SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), ', Transresult= ', IFNULL(TransResult, 'null'), '. Persoon met ID= ', IFNULL(PersonIdIn, 'null'), ' heeft geen Moeder.'),
+			TestLogDateTime = NOW();
+	ELSE
+        DELETE FROM humans.relations 
 			WHERE RelationPerson = PersonIdIn
 				AND RelationWithPerson = MotherIdIn
 				AND RelationName = fGetRelationId("Moeder");
 		SET TransResult = TransResult + 1;
 		INSERT INTO humans.testlog
-			SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), ', Transresult= ', IFNULL(TransResult, 'null'), '. Moeder relatie van moeder met ID= ', IFNULL(MotherIdIn, 'null'), ' en Persoon met ID= ', IFNULL(PersonIdIn, 'null'), ' is verwijderd uit de database als deze in de database bestond.'),
-				TestLogDateTime = NOW();
-	ELSE
-		INSERT INTO humans.testlog
-			SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), ', Transresult= ', IFNULL(TransResult, 'null'), '. Persoon met ID= ', IFNULL(PersonIdIn, 'null'), ' heeft geen Moeder.'),
+			SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), ', Transresult= ', IFNULL(TransResult, 'null'), '. Moeder relatie van moeder met ID= ', IFNULL(MotherIdIn, 'null'), ' en Persoon met ID= ', IFNULL(PersonIdIn, 'null'), ' is verwijderd uit de database.'),
 				TestLogDateTime = NOW();
     END IF;
 
     -- then Father if father is there
-    IF FatherIdIn != null THEN
+    IF FatherIdIn IS NULL THEN
+		INSERT INTO humans.testlog
+		SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), ', Transresult= ', IFNULL(TransResult, 'null'), '. Persoon met ID= ', IFNULL(PersonIdIn, 'null'), ' heeft geen Vader.'),
+			TestLogDateTime = NOW();
+    ELSE
 		DELETE FROM humans.relations 
 			WHERE RelationPerson = PersonIdIn
 				AND RelationWithPerson = FatherIdIn
 				AND RelationName = fGetRelationId("Vader");
 		SET TransResult = TransResult + 1;
 		INSERT INTO humans.testlog
-			SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), ', TransResult= ', IFNULL(TransResult, 'null'), '. Vader relatie van vader met ID= ', IFNULL(FatherIdIn, 'null'), ' en Persoon met ID= ', IFNULL(PersonIdIn, 'null'), ' is verwijderd uit de database als deze in de database bestond.'),
+			SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), ', TransResult= ', IFNULL(TransResult, 'null'), '. Vader relatie van vader met ID= ', IFNULL(FatherIdIn, 'null'), ' en Persoon met ID= ', IFNULL(PersonIdIn, 'null'), ' is verwijderd uit de database.'),
 				TestLogDateTime = NOW();    
-	ELSE 
-		INSERT INTO humans.testlog
-		SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), ', Transresult= ', IFNULL(TransResult, 'null'), '. Persoon met ID= ', IFNULL(PersonIdIn, 'null'), ' heeft geen Vader.'),
-			TestLogDateTime = NOW();
     END IF;
     
     -- and then Partner if partner is there
-    IF PartnerIdIn != null THEN
+    IF PartnerIdIn IS NULL THEN
+		INSERT INTO humans.testlog
+		SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), ', Transresult= ', IFNULL(TransResult, 'null'), '. Persoon met ID= ', IFNULL(PersonIdIn, 'null'), ' heeft geen Partner.'),
+			TestLogDateTime = NOW();
+    ELSE
 		DELETE FROM humans.relations 
 			WHERE RelationPerson = PersonIdIn
 			AND RelationWithPerson = PartnerIdIn
 			AND RelationName = fGetRelationId("Partner");
 	   INSERT INTO humans.testlog
-			SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), ', TransResult= ', IFNULL(TransResult, 'null'), '. Partner: ', IFNULL(PartnerIdIn, 'null'), ' verwijderd van persoon: ', IFNULL(PersonIdIn, 'null'), '.'),
+       		SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), ', TransResult= ', IFNULL(TransResult, 'null'), '. Partner: ', IFNULL(PartnerIdIn, 'null'), ' verwijderd van persoon: ', IFNULL(PersonIdIn, 'null'), '.'),
 				TestLogDateTime = NOW(); 
 		DELETE FROM humans.relations 
 			WHERE RelationPerson = PartnerIdIn
@@ -138,11 +156,7 @@ BEGIN
 		SET TransResult = TransResult + 1;
 		INSERT INTO humans.testlog
 			SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), ', TransResult= ', IFNULL(TransResult, 'null'), '. Persoon: ', IFNULL(PersonIdIn, 'null'), ' verwijderd als partner van persoon: ', IFNULL(PartnerIdIn, 'null'), '.'),
-				TestLogDateTime = NOW();
-	ELSE 
-		INSERT INTO humans.testlog
-		SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), ', Transresult= ', IFNULL(TransResult, 'null'), '. Persoon met ID= ', IFNULL(PersonIdIn, 'null'), ' heeft geen Partner.'),
-			TestLogDateTime = NOW();
+            TestLogDateTime = NOW(); 
     END IF;
 	
     -- Lastly delete Person itself 
@@ -152,16 +166,16 @@ BEGIN
     INSERT INTO humans.testlog 
 		SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), ', TransResult= ', IFNULL(TransResult, 'null'), '. Persoon met ID= ', IFNULL(PersonIdIn, 'null'), ' is verwijderd uit de database.'),
 		TestLogDateTime = NOW();
-        
-	INSERT INTO humans.testlog 
-		SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. TransResult= ', IFNULL(TransResult, 'null'), '. SPROC DeletePerson afgerond. CompletedOk= ', IFNULL(CompletedOk, 'null')),
-		TestLogDateTime = NOW();
-    
+     
     COMMIT;
+    
+    SET Result = "DeletionWasSuccesful";
+	SELECT CompletedOk, Result;
     
 END ;
 
-SET Result = "DeletionWasSuccesful";
-SELECT CompletedOk, Result;
+INSERT INTO humans.testlog 
+	SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. TransResult= ', IFNULL(TransResult, 'null'), '. SPROC DeletePerson afgerond. CompletedOk= ', IFNULL(CompletedOk, 'null')),
+	TestLogDateTime = NOW();
 
 END

@@ -1,0 +1,29 @@
+# Ignore .git (version control files / all sources: not needed for production)
+.git
+
+# Ignore .vscode (code editor setting: not needed for production)
+.vscode
+
+# Editor (VS Code) settings file: not needed for production)
+.editorconfig
+
+# .gitignore (stops files from being stored in code repository: not required for production)
+.gitignore
+
+# Any (temporary) saved files, ending on .saved)
+.saved
+
+# tslint.json (linter configuration file for code editor: not needed for production)
+tslint.json
+
+# Ignore coverage folder (????: no idea what this is, lets start by excluding it for production)
+coverage
+
+
+
+
+
+
+
+
+

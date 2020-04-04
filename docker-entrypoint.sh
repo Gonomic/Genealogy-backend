@@ -16,9 +16,23 @@
 set -e
 
 echo "[Entrypoint] MySQL Docker Image 8.0.19-1.1.15"
+
 # Fetch value from server config
 # We use mysqld --verbose --help instead of my_print_defaults because the
 # latter only show values present in config files, and not server defaults
+
+# FDE=> spare configuration
+# "${mysql[@]}" <<-EOSQL 
+#	SET PASSWORD for 'root' = PASSWORD('TopSecret'); 
+#	EOSQL
+#
+# "${mysql[@]}" <<-EOSQL 
+#	--user=root --password=TopSecret
+#	CREATE USER 'root'@'172.%' IDENTIFIED BY 'TopSecret';
+#	EOSQL
+
+
+
 _get_config() {
 	local conf="$1"; shift
 	"$@" --verbose --help 2>/dev/null | grep "^$conf" | awk '$1 == "'"$conf"'" { print $2; exit }'
@@ -64,15 +78,18 @@ if [ "$1" = 'mysqld' ]; then
 			fi
 		fi
 		if [ -z "$MYSQL_ROOT_PASSWORD" -a -z "$MYSQL_ALLOW_EMPTY_PASSWORD" -a -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
-			echo >&2 '[Entrypoint] No password option specified for new database.'
-			echo >&2 '[Entrypoint]   A random onetime password will be generated.'
+			echo >&2 '[Entrypoint] No password option specified for new database on command line.'
+			echo >&2 '[Entrypoint] Therefor generating default root password for Genealogy DB!'
+			echo >&2 '[Entrypoint] Applying default password [TopSecret01] (===> ! CHANGE IT ASAP !<===) for root of Genealogy database.'
+			echo >&2 '[Entrypoint] Still (mis)using MYSQL_RANDOM_ROOT_PASSWORD variable to not break flow of setting password in this docker-entrypoint.sh file.'
 			MYSQL_RANDOM_ROOT_PASSWORD=true
-			MYSQL_ONETIME_PASSWORD=true
+			# Part of original file, not needed now due to above. MYSQL_ONETIME_PASSWORD=true
 		fi
 		mkdir -p "$DATADIR"
 		chown -R mysql:mysql "$DATADIR"
 
 		echo '[Entrypoint] Initializing database'
+		echo '[Entrypoint] Ignore next warning about generating empty password. Pasword is set later in docker-entrypoint.sh file!'
 		"$@" --initialize-insecure
 		echo '[Entrypoint] Database initialized'
 
@@ -104,7 +121,8 @@ if [ "$1" = 'mysqld' ]; then
 		mysql_tzinfo_to_sql /usr/share/zoneinfo | "${mysql[@]}" mysql
 		
 		if [ ! -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
-			MYSQL_ROOT_PASSWORD="$(pwmake 128)"
+			# Part of original file: MYSQL_ROOT_PASSWORD="$(pwmake 128)". changed to beneauth line as default for the Genealogy DB and users. Change in prod ASAP(!!!!)
+			MYSQL_ROOT_PASSWORD="TopSecret01"
 			echo "[Entrypoint] GENERATED ROOT PASSWORD: $MYSQL_ROOT_PASSWORD"
 		fi
 		if [ -z "$MYSQL_ROOT_HOST" ]; then
@@ -113,21 +131,41 @@ if [ "$1" = 'mysqld' ]; then
 			ROOTCREATE="ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}'; \
 			CREATE USER 'root'@'${MYSQL_ROOT_HOST}' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}'; \
 			GRANT ALL ON *.* TO 'root'@'${MYSQL_ROOT_HOST}' WITH GRANT OPTION ; \
-			GRANT PROXY ON ''@'' TO 'root'@'${MYSQL_ROOT_HOST}' WITH GRANT OPTION ;"
+			GRANT PROXY ON ''@'' TO 'root'@'${MYSQL_ROOT_HOST}' WITH GRANT OPTION ; "
 		fi
 		"${mysql[@]}" <<-EOSQL
 			DELETE FROM mysql.user WHERE user NOT IN ('mysql.infoschema', 'mysql.session', 'mysql.sys', 'root') OR host NOT IN ('localhost');
 			CREATE USER 'healthchecker'@'localhost' IDENTIFIED BY 'healthcheckpass';
 			${ROOTCREATE}
+			CREATE USER 'root'@'172.%' IDENTIFIED BY 'TopSecret01' ; \
+			GRANT ALL ON *.* TO 'root'@'172.%' WITH GRANT OPTION ; \
+			GRANT PROXY ON ''@'' TO 'root'@'172.%' WITH GRANT OPTION ;
 			FLUSH PRIVILEGES ;
 		EOSQL
-		if [ ! -z "$MYSQL_ROOT_PASSWORD" ]; then
+		echo "[Entrypoint] Also created root@172.* to allow access from machine hosting docker or other hosts in docker network on docker host."
+		echo "[Entrypoint] Start setup humans DB through import of the InitialDB.sql file."
+		"${mysql[@]}" -uroot -pTopSecret01 < /InitialDB.sql
+		echo "[Entrypoint] End setup humans DB through import of the InitialDB.sql file."
+		"${mysql[@]}" <<-EOSQL
+			DELETE FROM mysql.user WHERE user NOT IN ('mysql.infoschema', 'mysql.session', 'mysql.sys', 'root') OR host NOT IN ('localhost');
+			CREATE USER 'healthchecker'@'localhost' IDENTIFIED BY 'healthcheckpass';
+			${ROOTCREATE}
+			CREATE USER 'root'@'172.%' IDENTIFIED BY 'TopSecret01' ; \
+			GRANT ALL ON *.* TO 'root'@'172.%' WITH GRANT OPTION ; \
+			GRANT PROXY ON ''@'' TO 'root'@'172.%' WITH GRANT OPTION ; \
+			CREATE USER 'humansAdmin'@'172.%' IDENTIFIED BY 'TopSecret01' ; \
+			GRANT ALL ON humans.* TO 'humansAdmin'@'172.%' ; \
+			CREATE USER 'humansUser'@'%' IDENTIFIED BY 'TopSecret01' ; \
+			GRANT SELECT, DELETE, EXECUTE, INSERT, SHOW, VIEW, UPDATE ON humans.* TO 'humansUser'@'%' ; \
+			FLUSH PRIVILIDGES;
+		EOSQL
+ 		if [ ! -z "$MYSQL_ROOT_PASSWORD" ]; then
 			# Put the password into the temporary config file
 			cat >"$PASSFILE" <<EOF
 [client]
 password="${MYSQL_ROOT_PASSWORD}"
 EOF
-			#mysql+=( -p"${MYSQL_ROOT_PASSWORD}" )
+			mysql+=( -p"${MYSQL_ROOT_PASSWORD}" )
 		fi
 
 		if [ "$MYSQL_DATABASE" ]; then
@@ -145,6 +183,8 @@ EOF
 		elif [ "$MYSQL_USER" -a ! "$MYSQL_PASSWORD" -o ! "$MYSQL_USER" -a "$MYSQL_PASSWORD" ]; then
 			echo '[Entrypoint] Not creating mysql user. MYSQL_USER and MYSQL_PASSWORD must be specified to create a mysql user.'
 		fi
+
+
 		echo
 		for f in /docker-entrypoint-initdb.d/*; do
 			case "$f" in
@@ -171,12 +211,12 @@ EOF
 				install /dev/null -m0600 -omysql -gmysql "$SQL"
 				if [ ! -z "$MYSQL_ROOT_HOST" ]; then
 					cat << EOF > "$SQL"
-ALTER USER 'root'@'${MYSQL_ROOT_HOST}' PASSWORD EXPIRE;
-ALTER USER 'root'@'localhost' PASSWORD EXPIRE;
+# ALTER USER 'root'@'${MYSQL_ROOT_HOST}' PASSWORD EXPIRE;
+# ALTER USER 'root'@'localhost' PASSWORD EXPIRE;
 EOF
 				else
 					cat << EOF > "$SQL"
-ALTER USER 'root'@'localhost' PASSWORD EXPIRE;
+# ALTER USER 'root'@'localhost' PASSWORD EXPIRE;
 EOF
 				fi
 				set -- "$@" --init-file="$SQL"
@@ -203,5 +243,6 @@ EOF
 	chown -R mysql:mysql "$DATADIR"
 	echo "[Entrypoint] Starting MySQL 8.0.19-1.1.15"
 fi
-
+echo '[Entrypoint] Startup!'
+echo "$@"
 exec "$@"

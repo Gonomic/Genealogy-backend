@@ -26,6 +26,9 @@ tslint.json
 # Ignore coverage folder (????: no idea what this is, lets start by excluding it for production)
 coverage
 
+# Ignore the datatransfer folder used to pump (MySQL backup/restore) data up and down to the container
+xfergenbedata
+
 
 
 

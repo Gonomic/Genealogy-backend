@@ -1,38 +1,18 @@
 CREATE DEFINER=`root`@`%` PROCEDURE `getPossiblePartners`(IN `PersonIDin` INT(11))
     SQL SECURITY INVOKER
-    COMMENT 'To get the possible partners of a person based on the persons birth'
+    COMMENT 'To get the possible partners of a person based on the persons birth date'
 BEGIN
-
-	/* This procedure takes into account that Fathers and Mothers as well as Sisters and Brothers */
-
-    /* may not be returned as (possible) partners */
-
-	-- CompletedOk defines the result of a database transaction, like this:
-
-    -- 0 = Transaction finished without problems.
-
-    -- 1 = Transaction aborted due to intermediate changes (possibly from other users) in the mean time
-
-    -- 2 = Transaction aborted due to problems during update and rollback performed
 
     DECLARE CompletedOk int;
 
-    -- NewTransNo is autonumber counter fetched from a seperate table and used for logging in a seperate log table
-
-	DECLARE NewTransNo int;
-
-    -- TransResult is used to count the number of seperate database operations and rissen with each step
+ 	DECLARE NewTransNo int;
 
 	DECLARE TransResult int;
 
-    -- RecCount is used to count the number of related records in depended tables.
-
 	DECLARE RecCount int;
-
-	-- --DECLARE FullNamePerson varchar(100);
-
-	-- --DECLARE BirthDateOfPersonIn date;
     
+    DECLARE PersonIDinBirthdate date;
+
 	DECLARE MessageText CHAR;
 
 	DECLARE ReturnedSqlState INT;
@@ -63,117 +43,50 @@ main_proc:
 
 BEGIN
 
-SET CompletedOk = 0;
+	SET CompletedOk = 0;
 
     SET TransResult = 0;
 
     SET NewTransNo = GetTranNo("getPossiblePartners");
 
-    -- Schrijf start van deze SQL transactie naar log
     INSERT INTO humans.testlog 
 		SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), ' START Sproc: getPossiblePartners(). TransResult= ', IFNULL(TransResult, 'null'), '. Start opbouwen tabel met mogelijke partners gebaseerd op persoon: ', IFNULL(PersonIDin, 'null')),
 			TestLogDateTime = NOW();
-
-
+            
+	SET PersonIDinBirthdate = fGetBirthDateOfPerson(PersonIDin);
+    
     SELECT DISTINCT
-
     
+		P.PersonID as PersonID, 
 
-    P.PersonID as PersonID, 
+		concat(P.PersonGivvenName, ' ', P.PersonFamilyName) as PossiblePartner,
 
-    concat(P.PersonGivvenName, ' ', P.PersonFamilyName) as PossiblePartner,
+		P.PersonDateOfBirth
 
-    P.PersonDateOfBirth
+		FROM persons P 
 
-    
+        WHERE P.PersonID <> PersonIDin
 
-    FROM persons P 
+		AND YEAR(P.PersonDateOfBirth) > YEAR(PersonIDinBirthdate) - 15
 
-    
-
-    WHERE P.PersonID <> PersonIDin
-
-    
-
-    AND YEAR(P.PersonDateOfBirth) 
-
-		>  
-
-		(SELECT YEAR(PersonDateOfBirth) - 15
-
-        FROM persons 
-
-        WHERE PersonID = PersonIDin)
-
+		AND YEAR(P.PersonDateOfBirth) < YEAR(PersonIDinBirthdate) + 15
 	
+ 		AND P.PersonID NOT IN 
 
-    AND YEAR(P.PersonDateOfBirth) 
+    		(SELECT RelationWithPerson
 
-		<  
+				FROM relations R
 
-		(SELECT YEAR(PersonDateOfBirth) + 15
+				JOIN (relationnames RN, persons P)
 
-        FROM persons 
+				ON (R.RelationName = RN.RelationnameID 
+                
+                AND P.PersonID = R.RelationPerson 
+                
+                AND (RN.RelationnameName = "Vader" OR RN.RelationnameName = "Moeder")))
 
-        WHERE PersonID = PersonIDin) 
 
-        
-
-	AND P.PersonID NOT IN 
-
-    /* A Partner may not be the Father or Mother, so do not select a person who is the father or mother */
-
-		(SELECT RelationWithPerson
-
-		 FROM relations R
-
-		 JOIN (relationnames RN, persons P)
-
-		 ON (R.RelationName = RN.RelationnameID AND 
-
-			 P.PersonID = R.RelationPerson AND 
-
-				(RN.RelationnameName = "Vader" OR
-
-				 RN.RelationnameName = "Moeder"))
-
-		 WHERE P.PersonID = PersonIDin)
-
-   
-
-   AND P.PersonID NOT IN 
-
-    /* A Partner may not be a Sister or a Brother, so do not select a person with same father or mother */
-
-		(SELECT RelationPerson as Persons 
-
-		FROM relations R
-
-		JOIN (relationnames RN, persons P)
-
-		ON R.RelationName = RN.RelationnameID AND 
-
-		P.PersonID = R.RelationPerson AND 
-
-		(RN.RelationnameName = "Vader" OR RN.RelationnameName = "Moeder") AND
-
-		RelationWithPerson NOT IN 
-
-			(SELECT RelationWithPerson as Parents
-
-			FROM relations R
-
-			JOIN (relationnames RN, persons P)
-
-			ON R.RelationName = RN.RelationnameID AND 
-
-			P.PersonID = R.RelationPerson AND 
-
-			R.RelationPerson = PersonIDin AND
-
-			(RN.RelationnameName = "Vader" OR RN.RelationnameName = "Moeder")))
-
-    ORDER BY P.PersonDateOfBirth;    
+		ORDER BY P.PersonDateOfBirth;    
 
 	INSERT INTO humans.testlog
 

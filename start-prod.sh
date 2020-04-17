@@ -1,1 +1,0 @@
-sails lift --port 8989 --prod

@@ -1,1 +1,1 @@
-docker image build -t fransdekkers/genbackend:1.0 .
+docker image build -t fransdekkers/genbackend:1.2 .

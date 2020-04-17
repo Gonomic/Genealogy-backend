@@ -32,6 +32,7 @@ VOLUME /var/lib/mysql
 
 COPY docker-entrypoint.sh /entrypoint.sh
 COPY healthcheck.sh /healthcheck.sh
+COPY my.cnf /etc
 COPY InitialDB.sql /InitialDB.sql
 ENTRYPOINT ["/entrypoint.sh"]
 HEALTHCHECK CMD /healthcheck.sh

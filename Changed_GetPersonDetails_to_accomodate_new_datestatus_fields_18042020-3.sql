@@ -1,3 +1,4 @@
+DELIMITER $$
 CREATE DEFINER=`root`@`%` PROCEDURE `GetPersonDetails`(IN `PersonIDin` INT(11))
     SQL SECURITY INVOKER
     COMMENT 'To get the details of a specific person'
@@ -121,4 +122,5 @@ SELECT DISTINCT
 
     WHERE PersonID = PersonIDin;
 
- END
+ END$$
+DELIMITER ;

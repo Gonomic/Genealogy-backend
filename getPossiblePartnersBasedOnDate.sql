@@ -3,32 +3,15 @@ CREATE DEFINER=`root`@`%` PROCEDURE `getPossiblePartnersBasedOnDate`(IN `DateIn`
     COMMENT 'To get possible partners based on a certain date'
 BEGIN
 
-	-- CompletedOk defines the result of a database transaction, like this:
-
-    -- 0 = Transaction finished without problems.
-
-    -- 1 = Transaction aborted due to intermediate changes (possibly from other users) in the mean time
-
-    -- 2 = Transaction aborted due to problems during update and rollback performed
-
     DECLARE CompletedOk int;
-
-    -- NewTransNo is autonumber counter fetched from a seperate table and used for logging in a seperate log table
 
 	DECLARE NewTransNo int;
 
-    -- TransResult is used to count the number of seperate database operations and rissen with each step
-
 	DECLARE TransResult int;
-
-    -- RecCount is used to count the number of related records in depended tables.
 
 	DECLARE RecCount int;
 
-	-- --DECLARE FullNamePerson varchar(100);
 
-	-- --DECLARE BirthDateOfPersonIn date;
-    
 	DECLARE MessageText CHAR;
 
 	DECLARE ReturnedSqlState INT;
@@ -65,7 +48,7 @@ BEGIN
 
     SET NewTransNo = GetTranNo("getPossiblePartnersBasedOnDate");
 
-    -- Schrijf start van deze SQL transactie naar log
+    
     INSERT INTO humans.testlog 
 		SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), ' START Sproc: getPossiblePartnersBasedOnDate(). TransResult= ', IFNULL(TransResult, 'null'), '. Start opbouwen tabel met mogelijke partners gebaseerd op datum= ', IFNULL(DateIn, 'null')),
 			TestLogDateTime = NOW();
@@ -77,7 +60,11 @@ BEGIN
 
 		concat(P.PersonGivvenName, ' ', P.PersonFamilyName) as PossiblePartner,
 
-		P.PersonDateOfBirth
+		concat('(', P.PersonDateOfBirth, ')') as PersonDateOfBirth,
+        
+        P.PersonDateOfBirth as SortDate,
+        
+		P.PersonDateOfDeath
 
 		FROM persons P 
 
@@ -86,7 +73,7 @@ BEGIN
     
 			AND YEAR(P.PersonDateOfBirth) < (YEAR(DateIn) + 15)
 
-		ORDER BY P.PersonDateOfBirth;    
+		ORDER BY SortDate;    
 
 	INSERT INTO humans.testlog
 

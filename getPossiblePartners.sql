@@ -61,7 +61,11 @@ BEGIN
 
 		concat(P.PersonGivvenName, ' ', P.PersonFamilyName) as PossiblePartner,
 
-		P.PersonDateOfBirth
+		concat('(', P.PersonDateOfBirth, ')') as PersonDateOfBirth,
+        
+        P.PersonDateOfBirth as SortDate,
+        
+		P.PersonDateOfDeath
 
 		FROM persons P 
 
@@ -86,7 +90,7 @@ BEGIN
                 AND (RN.RelationnameName = "Vader" OR RN.RelationnameName = "Moeder")))
 
 
-		ORDER BY P.PersonDateOfBirth;    
+		ORDER BY SortDate;    
 
 	INSERT INTO humans.testlog
 

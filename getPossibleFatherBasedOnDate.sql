@@ -3,25 +3,11 @@ CREATE DEFINER=`root`@`%` PROCEDURE `getPossibleFathersBasedOnDate`(IN `DateIn` 
     COMMENT 'To get possible fathers based on a certain date'
 BEGIN
 
-	-- CompletedOk defines the result of a database transaction, like this:
-
-    -- 0 = Transaction finished without problems.
-
-    -- 1 = Transaction aborted due to intermediate changes (possibly from other users) in the mean time
-
-    -- 2 = Transaction aborted due to problems during update and rollback performed
-
     DECLARE CompletedOk int;
-
-    -- NewTransNo is autonumber counter fetched from a seperate table and used for logging in a seperate log table
 
 	DECLARE NewTransNo int;
 
-    -- TransResult is used to count the number of seperate database operations and rissen with each step
-
 	DECLARE TransResult int;
-
-    -- RecCount is used to count the number of related records in depended tables.
 
 	DECLARE RecCount int;
 
@@ -65,7 +51,7 @@ BEGIN
 
     SET NewTransNo = GetTranNo("getPossibleFathersBasedOnDate");
 
-    -- Schrijf start van deze SQL transactie naar log
+    
     INSERT INTO humans.testlog 
 		SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), ' START Sproc: getPossibleFathersBasedOnDate(). TransResult= ', TransResult, '. Start opbouwen tabel met mogelijke vaders op basis van datum= ', DateIn),
 			TestLogDateTime = NOW();
@@ -76,7 +62,9 @@ BEGIN
 
 		concat(PersonGivvenName, ' ', PersonFamilyName) as PossibleFather,
         
-        PersonDateOfBirth as BirthDate,
+        concat('(', PersonDateOfBirth, ')') as PersonDateOfBirth,
+        
+        PersonDateOfBirth as SortDate,
         
         PersonDateOfDeath 
     
@@ -87,21 +75,12 @@ BEGIN
 		AND YEAR(PersonDateOfBirth) > (YEAR(DateIn) - 55)
         
         AND PersonIsMale = true
-        
-      
-        -- AND PersonID NOT in
-        
-		--  	(SELECT RelationPerson
-        --     FROM relations
-        --     WHERE RelationPerson = PersonID
-        --     AND RelationName = 1
-        --     OR RelationName = 2)
 
-       ORDER BY persons.PersonDateOfBirth;
+       ORDER BY SortDate;
 
     INSERT INTO humans.testlog
 
-			SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. END Sproc: getPOssibleFathersBasedOnDate(). TransResult= ', IFNULL(TransResult, 'null'), '. Lijst met mogelijke vades afgerond.'),
+			SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. END Sproc: getPossibleFathersBasedOnDate(). TransResult= ', IFNULL(TransResult, 'null'), '. Lijst met mogelijke vades afgerond.'),
 
 				TestLogDateTime = NOW();
 

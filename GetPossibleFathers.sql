@@ -75,9 +75,9 @@ BEGIN
 
 		WHERE PersonID <> PersonIDin
 
-		AND YEAR(PersonDateOfBirth) < (YEAR(BirthDateOfPersonIn) - 15)
+		AND YEAR(PersonDateOfBirth) < (YEAR(BirthDateOfPersonIn) - 10)
 
-		AND YEAR(PersonDateOfBirth) > (YEAR(BirthDateOfPersonIn) - 55)
+		AND YEAR(PersonDateOfBirth) > (YEAR(BirthDateOfPersonIn) - 65)
         
         AND PersonIsMale = true
         

@@ -70,9 +70,9 @@ BEGIN
     
     FROM persons  
 
-		WHERE YEAR(PersonDateOfBirth) < (YEAR(DateIn) - 15)
+		WHERE YEAR(PersonDateOfBirth) < (YEAR(DateIn) - 10)
 
-		AND YEAR(PersonDateOfBirth) > (YEAR(DateIn) - 55)
+		AND YEAR(PersonDateOfBirth) > (YEAR(DateIn) - 65)
         
         AND PersonIsMale = true
 

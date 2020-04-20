@@ -71,9 +71,9 @@ BEGIN
 
         WHERE P.PersonID <> PersonIDin
 
-		AND YEAR(P.PersonDateOfBirth) > YEAR(PersonIDinBirthdate) - 15
+		AND YEAR(P.PersonDateOfBirth) > YEAR(PersonIDinBirthdate) - 25
 
-		AND YEAR(P.PersonDateOfBirth) < YEAR(PersonIDinBirthdate) + 15
+		AND YEAR(P.PersonDateOfBirth) < YEAR(PersonIDinBirthdate) + 25
 	
  		AND P.PersonID NOT IN 
 

@@ -69,9 +69,9 @@ BEGIN
 		FROM persons P 
 
 		WHERE 
-			YEAR(P.PersonDateOfBirth) > (YEAR(DateIn) - 15)
+			YEAR(P.PersonDateOfBirth) > (YEAR(DateIn) - 25)
     
-			AND YEAR(P.PersonDateOfBirth) < (YEAR(DateIn) + 15)
+			AND YEAR(P.PersonDateOfBirth) < (YEAR(DateIn) + 25)
 
 		ORDER BY SortDate;    
 

@@ -1,5 +1,5 @@
 CREATE DEFINER=`root`@`%` PROCEDURE `AddPerson`(IN `PersonIdIn` INT(11), 
-												IN `PersonGivvenNameIn` VARCHAR(25), 
+												IN `PersonGivvenNameIn` VARCHAR(50), 
                                                 IN `PersonFamilyNameIn` VARCHAR(50), 
                                                 IN `PersonDateOfBirthIn` DATE, 
                                                 IN `PersonPlaceOfBirthIn` VARCHAR(50), 

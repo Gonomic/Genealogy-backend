@@ -1,5 +1,5 @@
 CREATE DEFINER=`root`@`%` PROCEDURE `ChangePerson`(IN `PersonIdIn` INT(11), 
-												IN `PersonGivvenNameIn` VARCHAR(25), 
+												IN `PersonGivvenNameIn` VARCHAR(50), 
                                                 IN `PersonFamilyNameIn` VARCHAR(50), 
                                                 IN `PersonDateOfBirthIn` DATE, 
                                                 IN `PersonPlaceOfBirthIn` VARCHAR(50), 
@@ -108,6 +108,8 @@ transactionBody:BEGIN
 				PersonFamilyName = PersonFamilyNameIn, 
 
 				PersonFamilyName = PersonFamilyNameIn, 
+                
+                PersonDateOfBirth = PersonDateOfBirthIn,
 
 				PersonPlaceOfBirth = PersonPlaceOfBirthIn, 
 

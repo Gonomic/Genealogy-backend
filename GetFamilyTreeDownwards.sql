@@ -1,5 +1,45 @@
-CREATE DEFINER=`root`@`172.%` PROCEDURE `GetFamilyTreeDownwards`(IN personIdIn INT, IN numberOfGenerationsIn INT)
+CREATE DEFINER=`root`@`172.%` PROCEDURE `GetFamilyTreeDownwards`(IN personIdIn INT, IN numberOfGenerationsIn INT, IN logIn BOOL)
 BEGIN
+	DECLARE CompletedOk INT;
+	DECLARE NewTransNo INT;
+	DECLARE TransResult INT;
+    DECLARE MessageText CHAR;
+	DECLARE ReturnedSqlState INT;
+	DECLARE MySQLErrNo INT;
+        
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			GET CURRENT DIAGNOSTICS CONDITION 1 MessageText = message_text, ReturnedSqlState = RETURNED_SQLSTATE, MySqlErrNo = MYSQL_ERRNO;
+			ROLLBACK;
+
+			SET CompletedOk = 2;
+
+			IF logIn THEN
+				INSERT INTO humans.testlog 
+				SET TestLog = CONCAT("Transaction-", IFNULL(NewTransNo, "null"), ". SPROC GetFamilyTreeDownwards(). Error occured. Rollback executed. CompletedOk= ", IFNULL(CompletedOk, 'null'),
+									'. MessageText= ', IFNULL(MessageText, "null"), " / State=", IFNULL(ReturnedSqlState, "null"), " / ErrNo=", IFNULL(MySqlErrNo, "null")), 
+									TestLogDateTime = NOW();
+			END IF;
+            
+			SELECT CompletedOk;
+		END;
+
+main_proc:
+	BEGIN
+	START TRANSACTION;
+
+	SET CompletedOk = 0;
+
+	SET TransResult = 0;
+
+	SET NewTransNo = GetTranNo("GetFamilyTreeDownwards");
+    
+    IF logIn THEN
+		INSERT INTO humans.testlog 
+		SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. Start GetFamilyTreeDownwards() with params: personIdIn= ', IFNULL(personIdIn, "null"), ' , numberOfGenerations= ', IFNULL(numberOfGenerationsIn, "null")),
+			TestLogDateTime = NOW();
+	END IF;
+
     WITH RECURSIVE FamTree (Limitter, PersonId, PersonName, PersonBirth, PersonDeath, PersonIsMale, Father, Mother, Partner) AS 
     (
         SELECT	1 as Limitter, 
@@ -34,4 +74,13 @@ BEGIN
 			WHERE Limitter < numberOfGenerationsIn
 	) 
     SELECT * FROM FamTree ORDER BY PersonBirth; 
+    
+	IF logIn THEN
+		INSERT INTO humans.testlog 
+		SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. End GetFamilyTreeDownwards() with result: ', IFNULL(TransResult, "null")),
+			TestLogDateTime = NOW();
+	END IF;
+    
+  END;  
+    
 END

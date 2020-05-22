@@ -41,7 +41,7 @@ main_proc:
 	END IF;
 
 
-    WITH RECURSIVE FamTree (Limitter, PersonId, PersonName, PersonBirth, PersonDeath, PersonIsMale, Father, Mother, Partner) AS 
+    WITH RECURSIVE FamTree (Limitter, PersonId, PersonName, PersonBirth, PersonDeath, PersonIsMale, Father, Mother, Partner, ParentsAreAlsoPartners) AS 
     (
         SELECT	1 as Limitter, 
 				PersonID, 
@@ -51,7 +51,8 @@ main_proc:
 				PersonIsMale,
 				rf.RelationWithPerson as Father,
                 rm.RelationWithPerson as Mother,
-                rp.RelationWithPerson as Partner
+                rp.RelationWithPerson as Partner,
+				fCheckIfParentsAreAlsoPartners(p.PersonID) as ParentsAreAlsoPartners
 			FROM persons p 
             LEFT JOIN relations rf ON p.PersonID = rf.RelationPerson AND rf.RelationName = "1"
             LEFT JOIN relations rm ON p.PersonID = rm.RelationPerson AND rm.RelationName = "2"            
@@ -66,7 +67,8 @@ main_proc:
 				p.PersonIsMale,
 				rf.RelationWithPerson as Father,
                 rm.RelationWithPerson as Mother,
-                rp.RelationWithPerson as Partner
+                rp.RelationWithPerson as Partner,
+				fCheckIfParentsAreAlsoPartners(p.PersonID) as ParentsAreAlsoPartners
  			FROM persons p 
             LEFT JOIN relations rf ON p.PersonID = rf.RelationPerson AND rf.RelationName = "1"
             LEFT JOIN relations rm ON p.PersonID = rm.RelationPerson AND rm.RelationName = "2"            

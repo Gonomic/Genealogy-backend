@@ -40,7 +40,8 @@ main_proc:
 			TestLogDateTime = NOW();
 	END IF;
 
-    WITH RECURSIVE FamTree (Limitter, PersonId, PersonName, PersonBirth, PersonDeath, PersonIsMale, Father, Mother, Partner) AS 
+	INSERT INTO helpthem (Limitter, PersonId, PersonName, PersonDateOfBirth, PersonDateOfDeath, PersonIsMale, Father, Mother, Partner, ParentsAreAlsoPartners) 
+    WITH RECURSIVE FamTree (Limitter, PersonId, PersonName, PersonBirth, PersonDeath, PersonIsMale, Father, Mother, Partner, ParentsArePartners) AS 
     (
         SELECT	1 as Limitter, 
 				PersonID, 
@@ -50,7 +51,8 @@ main_proc:
 				PersonIsMale,
 				rf.RelationWithPerson as Father,
                 rm.RelationWithPerson as Mother,
-                rp.RelationWithPerson as Partner
+                rp.RelationWithPerson as Partner,
+                fCheckIfParentsAreAlsoPartners(PersonID) as ParentsAreAlsoPartners
 			FROM persons p 
             LEFT JOIN relations rf ON p.PersonID = rf.RelationPerson AND rf.RelationName = "1"
             LEFT JOIN relations rm ON p.PersonID = rm.RelationPerson AND rm.RelationName = "2"            
@@ -65,7 +67,8 @@ main_proc:
 				p.PersonIsMale,
 				rf.RelationWithPerson as Father,
                 rm.RelationWithPerson as Mother,
-                rp.RelationWithPerson as Partner
+                rp.RelationWithPerson as Partner,
+                fCheckIfParentsAreAlsoPartners(p.PersonID) as ParentsAreAlsoPartners
  			FROM persons p 
             LEFT JOIN relations rf ON p.PersonID = rf.RelationPerson AND rf.RelationName = "1"
             LEFT JOIN relations rm ON p.PersonID = rm.RelationPerson AND rm.RelationName = "2"            
@@ -73,7 +76,9 @@ main_proc:
             INNER JOIN FamTree FT ON FT.PersonId = rf.RelationWithPerson 
 			WHERE Limitter < numberOfGenerationsIn
 	) 
-    SELECT * FROM FamTree ORDER BY PersonBirth; 
+    SELECT * FROM FamTree;
+    
+    SELECT * FROM helpthem ORDER by PersonDateOfBirth;
     
 	IF logIn THEN
 		INSERT INTO humans.testlog 

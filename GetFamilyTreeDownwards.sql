@@ -1,4 +1,4 @@
-CREATE DEFINER=`root`@`172.%` PROCEDURE `GetFamilyTreeDownwards`(IN personIdIn INT, IN numberOfGenerationsIn INT, IN logIn BOOL)
+CREATE DEFINER=`root`@`172.%` PROCEDURE `GetFamilyTreeDownwards`(IN personIdIn INT, IN numberOfGenerationsIn INT, IN logingOnIn BOOL)
 BEGIN
 	DECLARE CompletedOk INT;
 	DECLARE NewTransNo INT;
@@ -6,8 +6,6 @@ BEGIN
     DECLARE MessageText CHAR;
 	DECLARE ReturnedSqlState INT;
 	DECLARE MySQLErrNo INT;
-    DECLARE UniqueID BINARY(16);
-    DECLARE UniqueIdString VARCHAR(36);
         
 	DECLARE EXIT HANDLER FOR SQLEXCEPTION
 		BEGIN
@@ -29,8 +27,6 @@ BEGIN
 main_proc:
 	BEGIN
 	START TRANSACTION;
-    
-
 
 	SET CompletedOk = 0;
 
@@ -38,28 +34,22 @@ main_proc:
 
 	SET NewTransNo = GetTranNo("GetFamilyTreeDownwards");
     
-	IF logIn THEN
+	IF logingOnIn THEN
 		INSERT INTO humans.testlog 
-		SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. Start GetFamilyTreeDownwards() with params: personIdIn= ', IFNULL(personIdIn, "null"), ' , numberOfGenerations= ', IFNULL(numberOfGenerationsIn, "null")),
+		SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. Start GetFamilyTreeDownwards() with params: personIdIn= ', IFNULL(personIdIn, "null"), ' , numberOfGenerations= ', IFNULL(numberOfGenerationsIn, "null"), ' and logingOnIn= ', IFNULL(logingOnIn, "null") ),
 			TestLogDateTime = NOW();
 	END IF;
     
-    SET UniqueID = UNHEX(REPLACE(UUID(), '-', ''));
-    SELECT "UniqueID= ", UniqueID;
-    SET UniqueIdString = BIN_TO_UUID(UniqueID);
-    SELECT "UniqueIdString=", UniqueIdString;
     
-	IF logIn THEN
+	IF logingOnIn THEN
 		INSERT INTO humans.testlog 
-		SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. GetFamilyTreeDownwards(): running CTE and copying into helpthem table for data persistance, UUID= ', IFNULL(UniqueIdString, 'null')),
+		SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. GetFamilyTreeDownwards(): running CTE to get the Familytree.'),
 			TestLogDateTime = NOW();
 	END IF;
 
-	INSERT INTO helpthem (UniqueId, Limitter, PersonId, PersonName, PersonDateOfBirth, PersonDateOfDeath, PersonIsMale, Father, Mother, Partner, ParentsAreAlsoPartners) 
-    (WITH RECURSIVE FamTree (UniqueID, Limitter, PersonId, PersonName, PersonBirth, PersonDeath, PersonIsMale, Father, Mother, Partner, ParentsArePartners) AS 
+    WITH RECURSIVE FamTree (Limitter, PersonId, PersonName, PersonBirth, PersonDeath, PersonIsMale, Father, Mother, Partner, ParentsArePartners) AS 
 		(
 			SELECT	
-				UniqueID,
 				1 as Limitter, 
 				PersonID, 
                 CONCAT(PersonGivvenName, ' ', PersonFamilyName) as PersonName,
@@ -77,7 +67,6 @@ main_proc:
 			WHERE p.PersonId = personIdIn
 			UNION ALL
 			SELECT	
-				UniqueID,
                 Limitter + 1,
 				p.PersonID, 
                 CONCAT(p.PersonGivvenName, ' ', p.PersonFamilyName) as PersonName,
@@ -95,26 +84,9 @@ main_proc:
 				INNER JOIN FamTree FT ON FT.PersonId = rf.RelationWithPerson 
 				WHERE Limitter < numberOfGenerationsIn
 			) 
-			SELECT * FROM FamTree
-    );
+			SELECT * FROM FamTree;
     
-	IF logIn THEN
-		INSERT INTO humans.testlog 
-		SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. GetFamilyTreeDownwards(): selecting all records created in this session, UUID= ', IFNULL(UniqueIdString, 'null')),
-			TestLogDateTime = NOW();
-	END IF;
-    
-    SELECT Limitter as Generation, PersonId, PersonName, PersonDateOfBirth, PersonDateOfDeath, PersonIsMale, Father, Mother, Partner, ParentsAreAlsoPartners FROM helpthem WHERE UniqueId = UniqueID ORDER by PersonDateOfBirth;
-    
-	IF logIn THEN
-		INSERT INTO humans.testlog 
-		SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. GetFamilyTreeDownwards(): deleting all records after select, created in this session, UUID= ', IFNULL(UniqueIdString, 'null')),
-			TestLogDateTime = NOW();
-	END IF;
-    
-    DELETE FROM helpthem WHERE UniqueId = UniqueID AND PrimKey > 0;
-    
-	IF logIn THEN
+	IF logingOnIn THEN
 		INSERT INTO humans.testlog 
 		SET TestLog = CONCAT('TransAction-', IFNULL(NewTransNo, 'null'), '. End GetFamilyTreeDownwards() with result: ', IFNULL(TransResult, "null")),
 			TestLogDateTime = NOW();

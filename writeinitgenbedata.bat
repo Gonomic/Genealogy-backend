@@ -1,1 +1,1 @@
-docker run --rm --volumes-from GENBE01 -v d:/Frans/Development/Gen/Genealogy-backend/xfergenbedata:/xfergenbedata ubuntu bash -c "cd /var/lib/mysql && tar xvf /xfergenbedata/genbedata_042020-181551.tar"
+docker run --rm --volumes-from DEKKNET.COM -v d:/Frans/Development/Gen/Genealogy-backend/xfergenbedata:/xfergenbedata ubuntu bash -c "cd /var/lib/mysql && tar xvf /xfergenbedata/genbedata_052020-094154.tar"

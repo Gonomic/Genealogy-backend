@@ -63,8 +63,6 @@ INSERT INTO humans.testlog
 	SET TestLog = CONCAT("TransAction-", IFNULL(NewTransNo, "null"), ", SPROC AddUser(). TransResult= ", IFNULL(TransResult, "null"), ". Start add record for user with username= ", IFNULL(UserNameIn, "null")),
 		TestLogDateTime = NOW();
    
-         
-           
 transactionBody:BEGIN
 	START TRANSACTION;
 

@@ -56,8 +56,7 @@ BEGIN
 	INSERT INTO humans.testlog 
 		SET TestLog = CONCAT("TransAction-", IFNULL(NewTransNo, "null"), ", SPROC CheckPassword(). TransResult= ", IFNULL(TransResult, "null"), ". Start check password for user= ", IFNULL(UserIdIn, "null")),
 			TestLogDateTime = NOW();
-	   
-
+	
 	SELECT Wachtwoord FROM humans.users WHERE UserId=UserIdIn INTO UserPasswordToCheck;
 
 	IF fGenerateOrCheckIt(UserPasswordIn) = UserPasswordToCheck THEN

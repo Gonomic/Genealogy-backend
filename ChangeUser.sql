@@ -8,6 +8,8 @@ CREATE DEFINER=`root`@`%` PROCEDURE `ChangeUser`(IN `UserIdIn` INT(11),
 BEGIN
 	
 
+
+
     DECLARE CompletedOk int;
 
     

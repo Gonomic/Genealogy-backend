@@ -1,40 +1,32 @@
-# Copyright (c) 2017, Oracle and/or its affiliates. All rights reserved.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; version 2 of the License.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
-FROM oraclelinux:7-slim
+# Use lates docker image of MariaDB
+FROM mariadb:latest
 
-ARG MYSQL_SERVER_PACKAGE=mysql-community-server-minimal-8.0.19
-ARG MYSQL_SHELL_PACKAGE=mysql-shell-8.0.19
 
-# Install server
-RUN yum install -y https://repo.mysql.com/mysql-community-minimal-release-el7.rpm \
-      https://repo.mysql.com/mysql-community-release-el7.rpm \
-  && yum-config-manager --enable mysql80-server-minimal \
-  && yum install -y \
-      $MYSQL_SERVER_PACKAGE \
-      $MYSQL_SHELL_PACKAGE \
-      libpwquality \
-  && yum clean all \
-  && mkdir /docker-entrypoint-initdb.d
+# Create directory to contain files for initialization of DB structure
+# First rename StructureDataSprocsAndFuncs.SVE to S StructureDataSprocsAndFuncs.SQL if tatabase needs to be initialized.
+# If file is not renamed, nothing will be copied to folder docker-entrypoints-initdb.d and initialization will not take place
+RUN mkdir /docker-entrypoint-initdb.d
+COPY ./StructureDataSprocsSprocsAndFuncs27012020.sql /docker-entrypoints-initdb.d 
 
-VOLUME /var/lib/mysql
+# Ensure the container exec commands handle range of utf8 characters based of
+# default locales in base image (https://github.com/docker-library/docs/blob/135b79cc8093ab02e55debb61fdb079ab2dbce87/ubuntu/README.md#locales)
+ENV LANG C.UTF-8
 
-COPY docker-entrypoint.sh /entrypoint.sh
-COPY healthcheck.sh /healthcheck.sh
-COPY my.cnf /etc
-COPY InitialDB.sql /InitialDB.sql
-ENTRYPOINT ["/entrypoint.sh"]
-HEALTHCHECK CMD /healthcheck.sh
-EXPOSE 3306 3306
-CMD ["mysqld"]
+# OCI annotations to image
+LABEL org.opencontainers.image.authors="MariaDB Community" \
+      org.opencontainers.image.title="MariaDB Database" \
+      org.opencontainers.image.description="MariaDB Database for relational SQL" \
+      org.opencontainers.image.documentation="https://hub.docker.com/_/mariadb/" \
+      org.opencontainers.image.base.name="docker.io/library/ubuntu:jammy" \
+      org.opencontainers.image.licenses="GPL-2.0" \
+      org.opencontainers.image.source="https://github.com/MariaDB/mariadb-docker" \
+      org.opencontainers.image.vendor="MariaDB Community" \
+      org.opencontainers.image.version="Latest" \
+      org.opencontainers.image.url="https://github.com/MariaDB/mariadb-docker" 
+
+COPY healthcheck.sh /usr/local/bin/healthcheck.sh
+COPY docker-entrypoint.sh /usr/local/bin/
+ENTRYPOINT ["docker-entrypoint.sh"]
+
+EXPOSE 3306
+CMD ["mariadbd"]
